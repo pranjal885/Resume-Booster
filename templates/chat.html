@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-header">
+    <div>
+        <h1 class="text-white brand-font mb-1">AI Resume Coach</h1>
+        <p class="text-secondary small mb-0">Ask questions, get summary suggestions, or get active verb ideas for your resume.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="glass-card chat-container">
+            <!-- Message area -->
+            <div class="chat-messages" id="chatMessages">
+                <!-- Greeting message -->
+                <div class="chat-bubble bot">
+                    Hello! I am your <b>AI Resume Coach</b>. I've scanned your profile. Here are a few ways I can help you optimize your resume:<br><br>
+                    1. <b>"Generate a summary"</b> - Draft a custom resume profile summary.<br>
+                    2. <b>"Suggest action verbs"</b> - Get dynamic vocabulary upgrades.<br>
+                    3. <b>"What are my missing skills?"</b> - Analyze gaps for recommended jobs.
+                </div>
+            </div>
+            
+            <!-- Quick Chips -->
+            <div class="px-4 pb-2">
+                <div class="chat-chip" onclick="sendQuickMsg('Generate a summary')">📝 Generate Summary</div>
+                <div class="chat-chip" onclick="sendQuickMsg('Suggest action verbs')">⚡ Suggest Action Verbs</div>
+                <div class="chat-chip" onclick="sendQuickMsg('What are my missing skills?')">🔍 Review Missing Skills</div>
+                <div class="chat-chip" onclick="sendQuickMsg('Check my latest ATS score')">📊 Check ATS Score</div>
+            </div>
+            
+            <!-- Input area -->
+            <div class="chat-input-area">
+                <form id="chatForm" class="d-flex gap-2">
+                    <input type="text" id="chatInput" class="form-control form-control-custom py-2.5" placeholder="Ask your coach anything..." autocomplete="off" required>
+                    <button type="submit" class="btn btn-primary-custom px-4"><i class="fa-solid fa-paper-plane"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const chatForm = document.getElementById("chatForm");
+        const chatInput = document.getElementById("chatInput");
+        const chatMessages = document.getElementById("chatMessages");
+        
+        chatForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            // Append User message
+            appendMessage(message, "user");
+            chatInput.value = "";
+            
+            // Append loading indicator
+            const loadingBubble = appendMessage("<i class='fa-solid fa-spinner fa-spin me-2'></i>Thinking...", "bot");
+            
+            // Call API
+            fetch("{{ url_for('chat.message') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Remove loading bubble
+                loadingBubble.remove();
+                // Append bot response
+                appendMessage(data.response, "bot");
+            })
+            .catch(err => {
+                loadingBubble.remove();
+                appendMessage("Sorry, I encountered an error connecting to the server. Please try again.", "bot");
+            });
+        });
+        
+        function appendMessage(text, sender) {
+            const bubble = document.createElement("div");
+            bubble.classList.add("chat-bubble", sender);
+            bubble.innerHTML = text;
+            chatMessages.appendChild(bubble);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return bubble;
+        }
+
+        // Expose quick message function to window scope
+        window.sendQuickMsg = function(msg) {
+            chatInput.value = msg;
+            chatForm.dispatchEvent(new Event('submit'));
+        };
+    });
+</script>
+{% endblock %}

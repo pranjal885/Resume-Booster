@@ -1,0 +1,889 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --bg-dark: #0a0f1d;
+    --sidebar-bg: #111827;
+    --card-bg: rgba(20, 27, 45, 0.72);
+    --border-color: rgba(255, 255, 255, 0.08);
+
+    --accent-glow: linear-gradient(
+        135deg,
+        #6366f1 0%,
+        #8b5cf6 50%,
+        #a855f7 100%
+    );
+
+    --gradient-primary: linear-gradient(
+        135deg,
+        #4f46e5 0%,
+        #7c3aed 100%
+    );
+
+    --gradient-success: linear-gradient(
+        135deg,
+        #10b981 0%,
+        #059669 100%
+    );
+
+    --gradient-warning: linear-gradient(
+        135deg,
+        #f59e0b 0%,
+        #d97706 100%
+    );
+
+    --gradient-danger: linear-gradient(
+        135deg,
+        #ef4444 0%,
+        #dc2626 100%
+    );
+
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+
+    --input-bg: rgba(15, 23, 42, 0.8);
+
+    --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    --shadow-glow: 0 0 25px rgba(99, 102, 241, 0.18);
+}
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+
+    background-image:
+        radial-gradient(
+            at 0% 0%,
+            rgba(99, 102, 241, 0.14) 0px,
+            transparent 50%
+        ),
+        radial-gradient(
+            at 100% 100%,
+            rgba(168, 85, 247, 0.08) 0px,
+            transparent 50%
+        );
+}
+
+h1, h2, h3, h4, h5, h6,
+.brand-font {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+p,
+span,
+small,
+li,
+div {
+    color: inherit;
+}
+
+/* =========================================================
+   GLASS CARDS
+========================================================= */
+
+.glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+
+    box-shadow: var(--shadow-soft);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.glass-card:hover {
+    box-shadow: var(--shadow-glow);
+}
+
+.glass-card * {
+    color: var(--text-primary);
+}
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar {
+    width: 260px;
+    background-color: var(--sidebar-bg);
+
+    border-right: 1px solid var(--border-color);
+
+    display: flex;
+    flex-direction: column;
+
+    position: fixed;
+    height: 100vh;
+
+    z-index: 100;
+}
+
+.sidebar-brand {
+    padding: 24px;
+    border-bottom: 1px solid var(--border-color);
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-icon {
+    width: 38px;
+    height: 38px;
+
+    background: var(--accent-glow);
+
+    border-radius: 12px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+
+    box-shadow: 0 0 18px rgba(99, 102, 241, 0.4);
+}
+
+.sidebar-menu {
+    list-style: none;
+
+    padding: 24px 16px;
+    margin: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    flex-grow: 1;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 13px 16px;
+
+    color: var(--text-secondary);
+    text-decoration: none;
+
+    border-radius: 12px;
+
+    font-weight: 500;
+
+    transition: all 0.25s ease;
+}
+
+.sidebar-link i {
+    font-size: 18px;
+}
+
+.sidebar-link:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+}
+
+.sidebar-link.active {
+    background: var(--gradient-primary);
+    color: white;
+
+    box-shadow:
+        0 4px 15px rgba(99, 102, 241, 0.22);
+}
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.main-content {
+    flex-grow: 1;
+    margin-left: 260px;
+
+    padding: 40px;
+    min-height: 100vh;
+}
+
+.content-header {
+    margin-bottom: 30px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* =========================================================
+   STAT CARDS
+========================================================= */
+
+.stat-card {
+    padding: 24px;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+
+    border-radius: 12px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 20px;
+    color: white;
+
+    margin-bottom: 16px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.btn-primary-custom {
+    background: var(--gradient-primary);
+
+    border: none;
+    color: white;
+
+    padding: 10px 24px;
+
+    border-radius: 10px;
+
+    font-weight: 600;
+
+    transition: all 0.25s ease;
+}
+
+.btn-primary-custom:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 0 20px rgba(99, 102, 241, 0.35);
+}
+
+.btn-outline-custom {
+    background: transparent;
+
+    border: 1px solid var(--border-color);
+
+    color: var(--text-primary);
+
+    padding: 10px 24px;
+
+    border-radius: 10px;
+
+    font-weight: 500;
+}
+
+.btn-outline-custom:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* =========================================================
+   UPLOAD AREA
+========================================================= */
+
+.upload-zone {
+    border: 2px dashed rgba(255, 255, 255, 0.14);
+
+    border-radius: 16px;
+
+    padding: 40px 20px;
+
+    text-align: center;
+
+    background: rgba(15, 23, 42, 0.35);
+
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+    border-color: #6366f1;
+
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.upload-icon {
+    font-size: 48px;
+
+    background: var(--accent-glow);
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    margin-bottom: 16px;
+
+    display: inline-block;
+}
+
+/* =========================================================
+   FORM CONTROLS
+========================================================= */
+
+.form-control-custom {
+    background-color: var(--input-bg);
+
+    border: 1px solid var(--border-color);
+
+    color: #ffffff !important;
+
+    border-radius: 10px;
+
+    padding: 12px 16px;
+
+    transition: all 0.25s ease;
+}
+
+.form-control-custom:focus {
+    background-color: var(--input-bg);
+
+    border-color: #7c3aed;
+
+    box-shadow:
+        0 0 10px rgba(124, 58, 237, 0.2);
+
+    outline: none;
+}
+
+/* =========================================================
+   TABLES
+========================================================= */
+
+.table-custom {
+    background: transparent;
+    margin-bottom: 0;
+}
+
+.table-custom th {
+    background: rgba(255, 255, 255, 0.02) !important;
+
+    border-bottom: 1px solid var(--border-color) !important;
+
+    color: var(--text-secondary) !important;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-transform: uppercase;
+
+    padding: 16px 20px !important;
+}
+
+.table-custom td {
+    padding: 16px 20px !important;
+
+    border-bottom: 1px solid var(--border-color) !important;
+
+    color: #ffffff !important;
+
+    vertical-align: middle;
+}
+
+/* =========================================================
+   BADGES
+========================================================= */
+
+.badge-custom {
+    padding: 6px 12px;
+
+    border-radius: 8px;
+
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.badge-excellent {
+    background: rgba(16, 185, 129, 0.15);
+
+    color: #34d399;
+
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.badge-good {
+    background: rgba(245, 158, 11, 0.15);
+
+    color: #fbbf24;
+
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.badge-weak {
+    background: rgba(239, 68, 68, 0.15);
+
+    color: #f87171;
+
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* =========================================================
+   PROGRESS
+========================================================= */
+
+.progress-custom {
+    height: 8px;
+
+    background: rgba(255, 255, 255, 0.05);
+
+    border-radius: 10px;
+
+    overflow: hidden;
+}
+
+.progress-bar-custom {
+    background: var(--gradient-primary);
+}
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+.chat-container {
+    height: calc(100vh - 200px);
+
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-messages {
+    flex-grow: 1;
+
+    overflow-y: auto;
+
+    padding: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.chat-bubble {
+    max-width: 75%;
+
+    padding: 14px 20px;
+
+    border-radius: 16px;
+
+    line-height: 1.6;
+}
+
+.chat-bubble.bot {
+    align-self: flex-start;
+
+    background: rgba(255, 255, 255, 0.05);
+
+    border: 1px solid var(--border-color);
+
+    border-bottom-left-radius: 4px;
+}
+
+.chat-bubble.user {
+    align-self: flex-end;
+
+    background: var(--gradient-primary);
+
+    color: white;
+
+    border-bottom-right-radius: 4px;
+}
+
+.chat-input-area {
+    padding: 20px;
+
+    border-top: 1px solid var(--border-color);
+
+    background: rgba(15, 23, 42, 0.25);
+
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+.chat-chip {
+    padding: 6px 14px;
+
+    background: rgba(255, 255, 255, 0.04);
+
+    border: 1px solid var(--border-color);
+
+    border-radius: 20px;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    display: inline-block;
+
+    margin: 4px;
+
+    color: var(--text-secondary);
+
+    transition: all 0.2s ease;
+}
+
+.chat-chip:hover {
+    background: rgba(99, 102, 241, 0.08);
+
+    border-color: #6366f1;
+
+    color: #ffffff;
+}
+
+/* =========================================================
+   KEYWORDS / SKILLS FIX
+========================================================= */
+
+.keyword-tag,
+.keyword-pill,
+.keyword-chip,
+.skill-tag,
+.skill-pill,
+.keyword-badge,
+.missing-keyword,
+.weak-keyword {
+
+    color: #ffffff !important;
+
+    opacity: 1 !important;
+
+    visibility: visible !important;
+
+    font-weight: 600;
+}
+
+/* Missing keywords */
+
+.missing-keyword {
+    background: rgba(239, 68, 68, 0.18) !important;
+
+    border: 1px solid rgba(239, 68, 68, 0.45) !important;
+}
+
+/* Weak keywords */
+
+.weak-keyword {
+    background: rgba(245, 158, 11, 0.18) !important;
+
+    border: 1px solid rgba(245, 158, 11, 0.45) !important;
+
+    color: #fbbf24 !important;
+}
+
+/* =========================================================
+   TABS
+========================================================= */
+
+.tab-pane,
+.tab-pane * {
+    color: var(--text-primary);
+}
+
+/* =========================================================
+   ANALYTICS TEXT
+========================================================= */
+
+.section-description,
+.analysis-description,
+.card-description,
+.feedback-text,
+.helper-text,
+.small-text {
+
+    color: var(--text-secondary) !important;
+
+    opacity: 1 !important;
+}
+
+/* =========================================================
+   LOADING OVERLAY
+========================================================= */
+
+.loading-overlay {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 100vw;
+    height: 100vh;
+
+    background: rgba(9, 13, 22, 0.88);
+
+    backdrop-filter: blur(8px);
+
+    z-index: 9999;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity 0.3s ease;
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.loader-spinner {
+    width: 60px;
+    height: 60px;
+
+    border: 4px solid rgba(255, 255, 255, 0.08);
+
+    border-top-color: #6366f1;
+
+    border-radius: 50%;
+
+    animation: spin 1s infinite linear;
+
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* =========================================================
+   AUTH PAGES
+========================================================= */
+
+.auth-page {
+    min-height: 100vh;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 450px;
+
+    padding: 40px;
+}
+
+/* =========================================================
+   GAUGE
+========================================================= */
+
+.gauge-wrapper {
+    position: relative;
+
+    width: 150px;
+    height: 150px;
+
+    margin: 0 auto;
+}
+
+.gauge-circle {
+    transform: rotate(-90deg);
+}
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* =========================================================
+   SELECTION
+========================================================= */
+
+::selection {
+    background: rgba(99, 102, 241, 0.35);
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   FINAL SKILLS / KEYWORD VISIBILITY FIX
+========================================================= */
+
+/* All skill & keyword badges */
+
+.skill-tag,
+.skill-pill,
+.keyword-tag,
+.keyword-pill,
+.keyword-chip,
+.keyword-badge,
+.badge,
+.badge-custom {
+
+    background: rgba(99, 102, 241, 0.14) !important;
+
+    color: #ffffff !important;
+
+    border: 1px solid rgba(99, 102, 241, 0.22) !important;
+
+    font-weight: 600 !important;
+
+    opacity: 1 !important;
+
+    visibility: visible !important;
+
+    text-shadow: none !important;
+}
+
+/* Prevent bootstrap white badges */
+
+.badge.bg-light,
+.badge.bg-white,
+.bg-light,
+.bg-white {
+
+    background: rgba(99, 102, 241, 0.14) !important;
+
+    color: #ffffff !important;
+}
+
+/* Skills section specific fix */
+
+.skills-profile .badge,
+.skills-profile span,
+.skills-profile div,
+
+.skill-card .badge,
+.skill-card span,
+.skill-card div,
+
+.skills-container .badge,
+.skills-container span,
+.skills-container div {
+
+    color: #ffffff !important;
+
+    opacity: 1 !important;
+}
+
+/* Missing keyword tags */
+
+.missing-keyword {
+
+    background: rgba(239, 68, 68, 0.18) !important;
+
+    color: #ffffff !important;
+
+    border: 1px solid rgba(239, 68, 68, 0.45) !important;
+}
+
+/* Weak keyword tags */
+
+.weak-keyword {
+
+    background: rgba(245, 158, 11, 0.18) !important;
+
+    color: #fbbf24 !important;
+
+    border: 1px solid rgba(245, 158, 11, 0.45) !important;
+}
+
+/* Fix all pills/chips globally */
+
+[class*="tag"],
+[class*="pill"],
+[class*="chip"] {
+
+    color: #ffffff !important;
+
+    opacity: 1 !important;
+}
+
+/* Force readable text inside all cards */
+
+.glass-card * {
+
+    -webkit-text-fill-color: unset !important;
+}
+
+/* Fix transparent text issue */
+
+span,
+.badge,
+div {
+
+    -webkit-text-fill-color: currentColor !important;
+}
+

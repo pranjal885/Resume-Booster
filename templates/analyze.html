@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-header">
+    <div>
+        <h1 class="text-white brand-font mb-1">Resume Optimizer</h1>
+        <p class="text-secondary small mb-0">Evaluate your resume alignment against target job specs using NLP & Deep Learning.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="glass-card p-4 p-md-5">
+            <form id="analyzeForm" action="{{ url_for('analyze.index') }}" method="POST" enctype="multipart/form-data">
+                
+                <!-- Step 1: Resume Upload -->
+                <div class="mb-5">
+                    <h5 class="text-white brand-font mb-3"><i class="fa-solid fa-file-arrow-up text-indigo-400 me-2"></i>1. Upload PDF Resume</h5>
+                    
+                    <div id="dropZone" class="upload-zone">
+                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                        <h5 class="text-white brand-font mb-1" id="uploadStatusTitle">Drag & drop your PDF resume here</h5>
+                        <p class="text-secondary small mb-3">or click to browse from files (Max 16MB)</p>
+                        
+                        <input type="file" id="resumeInput" name="resume" accept=".pdf" class="d-none" required>
+                        <div id="fileInfo" class="d-none mt-2 p-2.5 rounded-3 bg-white-5 border border-white-10 d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-file-pdf text-danger fs-5"></i>
+                            <span class="text-white small fw-bold" id="selectedFileName"></span>
+                            <button type="button" id="removeFileBtn" class="btn-close btn-close-white ms-2" style="font-size: 10px;"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Target Job Details -->
+                <div class="mb-4">
+                    <h5 class="text-white brand-font mb-3"><i class="fa-solid fa-briefcase text-indigo-400 me-2"></i>2. Job Details</h5>
+                    
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label for="job_title" class="form-label text-secondary small">Target Job Title</label>
+                            <input type="text" class="form-control form-control-custom" id="job_title" name="job_title" placeholder="e.g. Full Stack Developer, Data Scientist, DevOps Engineer" required>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="job_description" class="form-label text-secondary small">Job Description</label>
+                            <textarea class="form-control form-control-custom" id="job_description" name="job_description" rows="8" placeholder="Paste the complete job description details here (skills required, responsibilities, and qualifications)..." required></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-end border-top border-white-5 pt-4">
+                    <button type="submit" class="btn btn-primary-custom px-5 py-2.5">
+                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Analyze & Score
+                    </button>
+                </div>
+                
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const dropZone = document.getElementById("dropZone");
+        const fileInput = document.getElementById("resumeInput");
+        const fileInfo = document.getElementById("fileInfo");
+        const selectedFileName = document.getElementById("selectedFileName");
+        const removeFileBtn = document.getElementById("removeFileBtn");
+        const uploadStatusTitle = document.getElementById("uploadStatusTitle");
+        const analyzeForm = document.getElementById("analyzeForm");
+        const loadingOverlay = document.getElementById("loadingOverlay");
+
+        // Trigger file input click when clicking drop zone
+        dropZone.addEventListener("click", function(e) {
+            // Only trigger if we didn't click the close button or info card
+            if (e.target !== removeFileBtn && !fileInfo.contains(e.target)) {
+                fileInput.click();
+            }
+        });
+
+        // Handle file input changes
+        fileInput.addEventListener("change", function() {
+            handleFiles(this.files);
+        });
+
+        // Drag and drop events
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('dragover');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+            
+            // Set files in input
+            fileInput.files = files;
+        }, false);
+
+        // Process selected file
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type !== "application/pdf" && !file.name.endsWith('.pdf')) {
+                    alert("Only PDF files are supported.");
+                    fileInput.value = "";
+                    return;
+                }
+                
+                selectedFileName.textContent = file.name;
+                fileInfo.classList.remove("d-none");
+                uploadStatusTitle.textContent = "Resume uploaded";
+            }
+        }
+
+        // Remove file
+        removeFileBtn.addEventListener("click", function(e) {
+            e.stopPropagation(); // Avoid triggering parent click
+            fileInput.value = "";
+            fileInfo.classList.add("d-none");
+            selectedFileName.textContent = "";
+            uploadStatusTitle.textContent = "Drag & drop your PDF resume here";
+        });
+
+        // Trigger loading screen on submit
+        analyzeForm.addEventListener("submit", function(e) {
+            if (fileInput.files.length === 0) {
+                e.preventDefault();
+                alert("Please select or drop a PDF resume first.");
+                return;
+            }
+            loadingOverlay.classList.add("active");
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-header">
+    <div>
+        <h1 class="text-white brand-font mb-1">Analysis Results</h1>
+        <p class="text-secondary small mb-0">Detailed optimization report for <b>{{ resume.filename }}</b> against <b>{{ job.title }}</b></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('analyze.download_report', score_id=score.id) }}" class="btn btn-outline-custom text-info">
+            <i class="fa-solid fa-file-pdf me-2"></i>Export Report PDF
+        </a>
+        <a href="{{ url_for('analyze.index') }}" class="btn btn-primary-custom">
+            <i class="fa-solid fa-arrow-left me-2"></i>Analyze Another
+        </a>
+    </div>
+</div>
+
+<!-- Score overview row -->
+<div class="row g-4 mb-4">
+    <!-- ATS Score Gauge -->
+    <div class="col-md-6">
+        <div class="glass-card p-4 text-center">
+            <h5 class="text-white brand-font mb-4 text-start"><i class="fa-solid fa-gauge-high text-indigo-400 me-2"></i>Overall ATS Score</h5>
+            
+            <div class="gauge-wrapper mb-3">
+                <canvas id="atsGaugeCanvas"></canvas>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                    <div class="fs-1 fw-bold text-white brand-font">{{ score.overall_score }}%</div>
+                    <div class="text-muted small">ATS Rating</div>
+                </div>
+            </div>
+            
+            <span class="badge-custom {% if score.strength_meter == 'Excellent' %}badge-excellent{% elif score.strength_meter == 'Good' %}badge-good{% else %}badge-weak{% endif %}">
+                {{ score.strength_meter }} Strength
+            </span>
+            <p class="text-secondary small mt-3 mb-0">
+                Score based on: Skills match (40%), Experience (25%), Education (15%), Projects (10%), Certs (10%).
+            </p>
+        </div>
+    </div>
+
+    <!-- Semantic Job Match -->
+    <div class="col-md-6">
+        <div class="glass-card p-4 text-center">
+            <h5 class="text-white brand-font mb-4 text-start"><i class="fa-solid fa-handshake text-indigo-400 me-2"></i>Semantic Job Match</h5>
+            
+            <div class="gauge-wrapper mb-3">
+                <canvas id="matchGaugeCanvas"></canvas>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                    <div class="fs-1 fw-bold text-white brand-font">{{ feedback.get('match_percentage', 0.0) }}%</div>
+                    <div class="text-muted small">Semantic Match</div>
+                </div>
+            </div>
+            
+            <span class="badge-custom badge-excellent" style="background-color: rgba(99, 102, 241, 0.15); color: #818cf8; border-color: rgba(99, 102, 241, 0.3);">
+                Similarity: {{ (feedback.get('similarity_score', 0.0) * 100) | round(1) }}%
+            </span>
+            <p class="text-secondary small mt-3 mb-0">
+                Calculated using <i>all-MiniLM-L6-v2</i> Deep Learning sentence embedding similarity.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs Card -->
+<div class="glass-card p-4 mb-5">
+    <!-- Tabs Nav -->
+    <ul class="nav nav-tabs border-bottom border-white-10 mb-4" id="resultsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-white active border-0 bg-transparent pb-3 px-3 fw-bold" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab">
+                <i class="fa-solid fa-square-poll-vertical me-2"></i>Section Feedback
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-white border-0 bg-transparent pb-3 px-3 fw-bold" id="keywords-tab" data-bs-toggle="tab" data-bs-target="#keywords" type="button" role="tab">
+                <i class="fa-solid fa-magnifying-glass me-2"></i>Keyword Optimization
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-white border-0 bg-transparent pb-3 px-3 fw-bold" id="writing-tab" data-bs-toggle="tab" data-bs-target="#writing" type="button" role="tab">
+                <i class="fa-solid fa-pen-nib me-2"></i>Writing Assistant
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-white border-0 bg-transparent pb-3 px-3 fw-bold" id="skills-tab" data-bs-toggle="tab" data-bs-target="#skills" type="button" role="tab">
+                <i class="fa-solid fa-list-check me-2"></i>Skills Profile
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-white border-0 bg-transparent pb-3 px-3 fw-bold" id="interview-tab" data-bs-toggle="tab" data-bs-target="#interview" type="button" role="tab">
+                <i class="fa-solid fa-user-tie me-2"></i>Interview Prep
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-white border-0 bg-transparent pb-3 px-3 fw-bold" id="jobs-tab" data-bs-toggle="tab" data-bs-target="#jobs" type="button" role="tab">
+                <i class="fa-solid fa-briefcase me-2"></i>Job Matches
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tabs Content -->
+    <div class="tab-content" id="resultsTabsContent">
+        <!-- 1. Summary and Section Feedback -->
+        <div class="tab-pane fade show active" id="summary" role="tabpanel">
+            <h5 class="text-white brand-font mb-4">Section Scores & Suggestions</h5>
+            <div class="row g-4">
+                <div class="col-md-6 border-end border-white-5">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-white fw-bold"><i class="fa-solid fa-laptop-code text-indigo-400 me-2"></i>Skills Assessment (40%)</span>
+                            <span class="badge bg-secondary">{{ score.skills_score }} / 100</span>
+                        </div>
+                        <ul class="text-secondary small ps-3">
+                            {% for f in feedback.get('skills', []) %}
+                                <li class="mb-1">{{ f }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-white fw-bold"><i class="fa-solid fa-user-gear text-indigo-400 me-2"></i>Professional Experience (25%)</span>
+                            <span class="badge bg-secondary">{{ score.experience_score }} / 100</span>
+                        </div>
+                        <ul class="text-secondary small ps-3">
+                            {% for f in feedback.get('experience', []) %}
+                                <li class="mb-1">{{ f }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-white fw-bold"><i class="fa-solid fa-graduation-cap text-indigo-400 me-2"></i>Education Credentials (15%)</span>
+                            <span class="badge bg-secondary">{{ score.education_score }} / 100</span>
+                        </div>
+                        <ul class="text-secondary small ps-3">
+                            {% for f in feedback.get('education', []) %}
+                                <li class="mb-1">{{ f }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-white fw-bold"><i class="fa-solid fa-diagram-project text-indigo-400 me-2"></i>Projects & Applications (10%)</span>
+                            <span class="badge bg-secondary">{{ score.projects_score }} / 100</span>
+                        </div>
+                        <ul class="text-secondary small ps-3">
+                            {% for f in feedback.get('projects', []) %}
+                                <li class="mb-1">{{ f }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-white fw-bold"><i class="fa-solid fa-certificate text-indigo-400 me-2"></i>Certifications & Badges (10%)</span>
+                            <span class="badge bg-secondary">{{ score.certifications_score }} / 100</span>
+                        </div>
+                        <ul class="text-secondary small ps-3">
+                            {% for f in feedback.get('certifications', []) %}
+                                <li class="mb-1">{{ f }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div class="p-3.5 rounded-3 border border-white-5 bg-white-2 mt-4">
+                        <h6 class="text-white brand-font"><i class="fa-solid fa-lightbulb text-warning me-2"></i>AI Coach Recommendation</h6>
+                        <ul class="text-secondary small ps-3 mb-0">
+                            {% for sug in feedback.get('suggestions', []) %}
+                                <li class="mb-1">{{ sug }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Keyword Optimization -->
+        <div class="tab-pane fade" id="keywords" role="tabpanel">
+            <h5 class="text-white brand-font mb-2">Keyword density and comparison</h5>
+            <p class="text-secondary small mb-4">ATS screening relies heavily on tracking industry keywords listed in the job description.</p>
+            
+            <div class="p-3.5 rounded-3 bg-white-2 border border-white-5 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-white fw-bold">Technical Keyword Density</span>
+                    <span class="badge bg-primary fs-6">{{ feedback.get('density', 0.0) }}%</span>
+                </div>
+                <p class="text-secondary small mb-0">{{ feedback.get('density_feedback', '') }}</p>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Missing Keywords -->
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 border border-white-5 h-100 bg-white-2">
+                        <h6 class="text-white brand-font text-danger mb-3"><i class="fa-solid fa-circle-xmark me-2"></i>Missing Keywords ({{ feedback.get('missing_keywords', []) | length }})</h6>
+                        {% if feedback.get('missing_keywords', []) %}
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for kw in feedback.get('missing_keywords', []) %}
+                                    <span class="badge bg-danger bg-opacity-20 text-danger border border-danger-subtle py-2 px-2.5 rounded-2 small"><i class="fa-solid fa-plus me-1"></i>{{ kw }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-success small"><i class="fa-solid fa-circle-check me-2"></i>No missing keywords detected. Great job aligning with the job details!</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Weak Keywords -->
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 border border-white-5 h-100 bg-white-2">
+                        <h6 class="text-white brand-font text-warning mb-3"><i class="fa-solid fa-circle-exclamation me-2"></i>Weak/Low-Density Keywords ({{ feedback.get('weak_keywords', []) | length }})</h6>
+                        {% if feedback.get('weak_keywords', []) %}
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for kw in feedback.get('weak_keywords', []) %}
+                                    <span class="badge bg-warning bg-opacity-20 text-warning border border-warning-subtle py-2 px-2.5 rounded-2 small"><i class="fa-solid fa-arrow-trend-up me-1"></i>{{ kw }}</span>
+                                {% endfor %}
+                            </div>
+                            <p class="text-muted small mt-3 mb-0">These keywords exist on your resume but are only mentioned once or twice. Consider reinforcing them in your achievements.</p>
+                        {% else %}
+                            <p class="text-success small"><i class="fa-solid fa-circle-check me-2"></i>No weak keywords identified.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Writing Assistant -->
+        <div class="tab-pane fade" id="writing" role="tabpanel">
+            <h5 class="text-white brand-font mb-2">Passive Language Optimizer</h5>
+            <p class="text-secondary small mb-4">ATS parsers and hiring managers favor action-oriented bullet points over passive listings of duties.</p>
+            
+            {% if feedback.get('weak_phrases', []) %}
+                <div class="d-flex flex-column gap-3">
+                    {% for item in feedback.get('weak_phrases', []) %}
+                        <div class="p-3.5 rounded-3 border border-white-5 bg-white-2">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-danger-subtle text-danger-emphasis py-1.5 px-2.5 rounded-2">Passive Expression: "{{ item.weak_phrase }}"</span>
+                                <span class="text-success fw-bold small"><i class="fa-solid fa-circle-arrow-right me-1"></i>Use: {{ item.suggestion }}</span>
+                            </div>
+                            <p class="text-secondary small mb-2">Detected in: <i class="text-white">{{ item.snippet }}</i></p>
+                            <p class="text-secondary small mb-0"><span class="text-indigo-400 font-weight-500">AI Suggestion:</span> {{ item.tip }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4 bg-white-2 rounded-3 border border-white-5">
+                    <i class="fa-solid fa-wand-magic-sparkles text-success fs-3 mb-3"></i>
+                    <h6 class="text-white brand-font">Excellent writing quality!</h6>
+                    <p class="text-secondary small mb-0">We did not detect any passive phrases or weak words (like 'worked on', 'assisted', 'helped') in your resume sections.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- 4. Extracted Skills -->
+        <div class="tab-pane fade" id="skills" role="tabpanel">
+            <h5 class="text-white brand-font mb-4">Skills Extracted from Resume</h5>
+            
+            <div class="row g-4">
+                {% for cat, label, icon in [
+                    ('programming_language', 'Programming Languages', 'fa-code'),
+                    ('framework', 'Frameworks & Libraries', 'fa-cube'),
+                    ('database', 'Databases', 'fa-database'),
+                    ('tool', 'Tools & Platforms', 'fa-screwdriver-wrench'),
+                    ('technology', 'Methodologies & Technologies', 'fa-diagram-project'),
+                    ('soft_skill', 'Soft Skills', 'fa-users')
+                ] %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="p-3 rounded-3 border border-white-5 h-100 bg-white-2">
+                            <h6 class="text-white brand-font mb-3"><i class="fa-solid {{ icon }} text-indigo-400 me-2"></i>{{ label }}</h6>
+                            {% if skills_by_category[cat] %}
+                                <div class="d-flex flex-wrap gap-1.5">
+                                    {% for s in skills_by_category[cat] %}
+                                        <span class="badge bg-white bg-opacity-5 text-white border border-white-10 py-1.5 px-2 rounded-2 small">{{ s }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <span class="text-muted small">None detected in this category.</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 5. Interview Prep -->
+        <div class="tab-pane fade" id="interview" role="tabpanel">
+            <h5 class="text-white brand-font mb-2">Personalized Interview Questions</h5>
+            <p class="text-secondary small mb-4">We generated these custom technical interview questions based on the skill sets extracted from your resume.</p>
+            
+            <div class="accordion accordion-flush" id="interviewAccordion">
+                {% for iq in interview_qs %}
+                    <div class="accordion-item bg-transparent border-bottom border-white-10 mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-white px-0 py-3 brand-font focus-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ iq.id }}">
+                                <span class="badge bg-primary bg-opacity-20 text-indigo-300 border border-primary-subtle me-3 small">{{ iq.skill }}</span>
+                                {{ iq.question }}
+                            </button>
+                        </h2>
+                        <div id="collapse-{{ iq.id }}" class="accordion-collapse collapse" data-bs-parent="#interviewAccordion">
+                            <div class="accordion-body px-0 text-secondary small pb-4">
+                                <strong class="text-white d-block mb-1.5"><i class="fa-solid fa-compass text-warning me-2"></i>Suggested Answer Guidelines:</strong>
+                                {{ iq.answer_guideline }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 6. Job Recommendations -->
+        <div class="tab-pane fade" id="jobs" role="tabpanel">
+            <h5 class="text-white brand-font mb-2">Recommended Career Matches</h5>
+            <p class="text-secondary small mb-4">Mapping your resume skills profile to typical tech industry job roles.</p>
+            
+            <div class="row g-4">
+                {% for rec in recommendations %}
+                    <div class="col-md-6">
+                        <div class="p-3.5 rounded-3 border border-white-5 bg-white-2 h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="text-white brand-font mb-0">{{ rec.job_title }}</h6>
+                                    <span class="badge-custom {% if rec.match_percentage >= 70 %}badge-excellent{% elif rec.match_percentage >= 40 %}badge-good{% else %}badge-weak{% endif %}">
+                                        {{ rec.match_percentage }}% Match
+                                    </span>
+                                </div>
+                                <p class="text-secondary small mb-3">{{ rec.description }}</p>
+                            </div>
+                            
+                            <div class="border-top border-white-5 pt-3.5">
+                                {% if rec.skill_improvements %}
+                                    <span class="text-secondary small font-weight-500 d-block mb-1">Suggested Skills to Learn:</span>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for s in rec.skill_improvements.split(', ') %}
+                                            <span class="badge bg-secondary bg-opacity-20 text-secondary border border-secondary-subtle py-1 px-2 rounded-2 small">{{ s }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-success small fw-bold"><i class="fa-solid fa-circle-check me-2"></i>Your skills match this role perfectly!</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. ATS Score Gauge
+        const score = {{ score.overall_score }};
+        const ctxAts = document.getElementById('atsGaugeCanvas').getContext('2d');
+        new Chart(ctxAts, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [score, 100 - score],
+                    backgroundColor: [
+                        score >= 75 ? '#10b981' : (score >= 50 ? '#f59e0b' : '#ef4444'),
+                        'rgba(255, 255, 255, 0.05)'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: [10, 0]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '80%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+
+        // 2. Semantic Match Gauge
+        const match = {{ feedback.get('match_percentage', 0.0) }};
+        const ctxMatch = document.getElementById('matchGaugeCanvas').getContext('2d');
+        new Chart(ctxMatch, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [match, 100 - match],
+                    backgroundColor: [
+                        '#818cf8',
+                        'rgba(255, 255, 255, 0.05)'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: [10, 0]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '80%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+    });
+</script>
+<style>
+    /* Tab modifications */
+    .nav-tabs .nav-link {
+        border-radius: 0 !important;
+        opacity: 0.6;
+        transition: all 0.2s ease;
+    }
+    .nav-tabs .nav-link:hover {
+        opacity: 0.9;
+    }
+    .nav-tabs .nav-link.active {
+        opacity: 1 !important;
+        border-bottom: 2px solid #6366f1 !important;
+        color: #f8fafc !important;
+    }
+    /* Flush Accordion Style Override */
+    .accordion-item {
+        background-color: transparent !important;
+    }
+    .accordion-button {
+        box-shadow: none !important;
+        color: #f8fafc !important;
+    }
+    .accordion-button:not(.collapsed) {
+        background-color: transparent !important;
+        color: #818cf8 !important;
+    }
+    .accordion-button::after {
+        filter: invert(1);
+    }
+    .focus-none:focus {
+        box-shadow: none !important;
+    }
+</style>
+{% endblock %}

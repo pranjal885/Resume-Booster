@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-header">
+    <div>
+        <h1 class="text-white brand-font mb-1">Analysis History</h1>
+        <p class="text-secondary small mb-0">Track and review your previous resume optimization reports.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('analyze.index') }}" class="btn btn-primary-custom">
+            <i class="fa-solid fa-plus me-2"></i>Analyze Resume
+        </a>
+    </div>
+</div>
+
+<div class="glass-card p-4">
+    {% if not history %}
+        <div class="text-center py-5">
+            <div class="brand-icon mx-auto mb-4" style="width: 54px; height: 54px; font-size: 24px; border-radius: 14px;">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <h5 class="text-white brand-font mb-2">No history recorded</h5>
+            <p class="text-secondary mx-auto mb-4" style="max-width: 400px;">
+                You haven't run any resume analyses yet. Upload a resume against a target description to begin tracking your records.
+            </p>
+            <a href="{{ url_for('analyze.index') }}" class="btn btn-sm btn-primary-custom px-4 py-2">
+                Analyze First Resume
+            </a>
+        </div>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table table-custom align-middle">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>File Name</th>
+                        <th>Target Job Title</th>
+                        <th>ATS Score</th>
+                        <th>Semantic Match</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history %}
+                        <tr>
+                            <td class="text-secondary small">{{ item.created_at }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-file-pdf text-danger fs-5"></i>
+                                    <span class="text-white small text-truncate" style="max-width: 180px;" title="{{ item.filename }}">{{ item.filename }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-white small fw-bold">{{ item.job_title }}</span>
+                            </td>
+                            <td>
+                                <span class="badge-custom {% if item.strength_meter == 'Excellent' %}badge-excellent{% elif item.strength_meter == 'Good' %}badge-good{% else %}badge-weak{% endif %}">
+                                    {{ item.overall_score }}%
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-secondary small">{{ item.match_percentage }}%</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-2">
+                                    <a href="{{ url_for('analyze.results', score_id=item.score_id) }}" class="btn btn-sm btn-outline-custom" title="View Full Report">
+                                        <i class="fa-solid fa-eye me-1"></i> View Report
+                                    </a>
+                                    <a href="{{ url_for('analyze.download_report', score_id=item.score_id) }}" class="btn btn-sm btn-outline-custom text-info" title="Download PDF Report">
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-header">
+    <div>
+        <h1 class="text-white brand-font mb-1">Welcome back, {{ session.get('username') }}</h1>
+        <p class="text-secondary small mb-0">Here is your resume intelligence and ATS optimization overview.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('analyze.index') }}" class="btn btn-primary-custom">
+            <i class="fa-solid fa-plus me-2"></i>Analyze New Resume
+        </a>
+    </div>
+</div>
+
+<!-- Stats row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="glass-card stat-card d-flex align-items-center justify-content-between">
+            <div>
+                <div class="stat-value text-white">{{ total_resumes }}</div>
+                <div class="stat-label">Resumes Analyzed</div>
+            </div>
+            <div class="stat-icon" style="background: var(--gradient-primary); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">
+                <i class="fa-solid fa-file-invoice"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card stat-card d-flex align-items-center justify-content-between">
+            <div>
+                <div class="stat-value text-white">{{ avg_ats_score }}%</div>
+                <div class="stat-label">Average ATS Score</div>
+            </div>
+            <div class="stat-icon" style="background: var(--gradient-success); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">
+                <i class="fa-solid fa-gauge-high"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card stat-card d-flex align-items-center justify-content-between">
+            <div>
+                <div class="stat-value text-white">{{ max_ats_score }}%</div>
+                <div class="stat-label">Highest Score</div>
+            </div>
+            <div class="stat-icon" style="background: var(--gradient-warning); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);">
+                <i class="fa-solid fa-award"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not latest_resume %}
+<!-- Welcome Empty State -->
+<div class="glass-card p-5 text-center my-5">
+    <div class="brand-icon mx-auto mb-4" style="width: 60px; height: 60px; font-size: 32px; border-radius: 16px;">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+    </div>
+    <h3 class="text-white brand-font mb-2">No analyzed resumes found</h3>
+    <p class="text-secondary mx-auto mb-4" style="max-width: 500px;">
+        Upload your resume PDF and a target job description. We will scan your document for keyword optimization, match completeness, and generate tailored coaching tips!
+    </p>
+    <a href="{{ url_for('analyze.index') }}" class="btn btn-primary-custom">
+        <i class="fa-solid fa-upload me-2"></i>Upload and Analyze
+    </a>
+</div>
+{% else %}
+
+<div class="row g-4 mb-4">
+    <!-- ATS Score Gauge & Breakdown -->
+    <div class="col-lg-6">
+        <div class="glass-card h-100 p-4">
+            <h5 class="text-white brand-font mb-4"><i class="fa-solid fa-gauge-high text-indigo-400 me-2"></i>Latest ATS Breakdown</h5>
+            
+            <div class="row align-items-center">
+                <div class="col-sm-5 text-center mb-3 mb-sm-0">
+                    <div class="gauge-wrapper" style="width: 140px; height: 140px;">
+                        <canvas id="atsGaugeChart"></canvas>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                            <div class="fs-2 fw-bold text-white brand-font" id="atsScoreValue">{{ latest_ats.overall_score if latest_ats else 0 }}</div>
+                            <div class="text-muted small">ATS Score</div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span class="badge-custom {% if latest_ats and latest_ats.strength_meter == 'Excellent' %}badge-excellent{% elif latest_ats and latest_ats.strength_meter == 'Good' %}badge-good{% else %}badge-weak{% endif %}">
+                            {{ latest_ats.strength_meter if latest_ats else 'Weak' }} Profile
+                        </span>
+                    </div>
+                </div>
+                <div class="col-sm-7">
+                    <h6 class="text-secondary small mb-3">Section Scores</h6>
+                    
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between text-white small mb-1">
+                            <span>Skills (40%)</span>
+                            <span>{{ latest_ats.skills_score }}%</span>
+                        </div>
+                        <div class="progress progress-custom">
+                            <div class="progress-bar progress-bar-custom bg-info" role="progressbar" style="width: {{ latest_ats.skills_score }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between text-white small mb-1">
+                            <span>Experience (25%)</span>
+                            <span>{{ latest_ats.experience_score }}%</span>
+                        </div>
+                        <div class="progress progress-custom">
+                            <div class="progress-bar progress-bar-custom bg-success" role="progressbar" style="width: {{ latest_ats.experience_score }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between text-white small mb-1">
+                            <span>Education (15%)</span>
+                            <span>{{ latest_ats.education_score }}%</span>
+                        </div>
+                        <div class="progress progress-custom">
+                            <div class="progress-bar progress-bar-custom bg-warning" role="progressbar" style="width: {{ latest_ats.education_score }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between text-white small mb-1">
+                            <span>Projects (10%)</span>
+                            <span>{{ latest_ats.projects_score }}%</span>
+                        </div>
+                        <div class="progress progress-custom">
+                            <div class="progress-bar progress-bar-custom bg-primary" role="progressbar" style="width: {{ latest_ats.projects_score }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between text-white small mb-1">
+                            <span>Certifications (10%)</span>
+                            <span>{{ latest_ats.certifications_score }}%</span>
+                        </div>
+                        <div class="progress progress-custom">
+                            <div class="progress-bar progress-bar-custom bg-danger" role="progressbar" style="width: {{ latest_ats.certifications_score }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-top border-white-5 mt-4 pt-3 d-flex justify-content-between align-items-center">
+                <span class="text-secondary small"><i class="fa-solid fa-file-pdf me-2"></i>Latest: {{ latest_resume.filename }}</span>
+                <a href="{{ url_for('analyze.results', score_id=latest_ats.id) }}" class="btn btn-sm btn-outline-custom">View Report</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skill Distribution Chart -->
+    <div class="col-lg-6">
+        <div class="glass-card h-100 p-4">
+            <h5 class="text-white brand-font mb-4"><i class="fa-solid fa-tags text-indigo-400 me-2"></i>Skill Classification</h5>
+            
+            <div style="height: 200px; position: relative;">
+                <canvas id="skillsDistributionChart"></canvas>
+            </div>
+            
+            <div class="border-top border-white-5 mt-4 pt-3">
+                <span class="text-secondary small">Detected Skills summary:</span>
+                <p class="text-white small mb-0 mt-1">{{ skills_preview }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Activity History -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4">
+            <h5 class="text-white brand-font mb-4"><i class="fa-solid fa-history text-indigo-400 me-2"></i>Recent Activity</h5>
+            
+            <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                    <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Target Role</th>
+                            <th>ATS Score</th>
+                            <th>Match %</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in resumes %}
+                            {% set ats_record = r.ats_scores[0] if r.ats_scores else None %}
+                            {% if ats_record %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-file-pdf text-danger fs-5"></i>
+                                        <span class="text-white small text-truncate" style="max-width: 160px;" title="{{ r.filename }}">{{ r.filename }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-white small">{{ ats_record.job_description.title }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge-custom {% if ats_record.strength_meter == 'Excellent' %}badge-excellent{% elif ats_record.strength_meter == 'Good' %}badge-good{% else %}badge-weak{% endif %}">
+                                        {{ ats_record.overall_score }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    <!-- Parse match % from JSON -->
+                                    <span class="text-secondary small">
+                                        {{ (ats_record.feedback_json | json_loads).get('match_percentage', 0) if ats_record.feedback_json else 0 }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('analyze.results', score_id=ats_record.id) }}" class="btn btn-sm btn-outline-custom py-1 px-2" title="View details">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('analyze.download_report', score_id=ats_record.id) }}" class="btn btn-sm btn-outline-custom py-1 px-2 text-info" title="Download Report">
+                                            <i class="fa-solid fa-download"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Career Role Recommendations -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <h5 class="text-white brand-font mb-4"><i class="fa-solid fa-briefcase text-indigo-400 me-2"></i>Job Matches</h5>
+            
+            <div class="d-flex flex-column gap-3">
+                {% for rec in latest_recommendations %}
+                    <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-white small fw-bold">{{ rec.job_title }}</span>
+                            <span class="small" style="color: {% if rec.match_percentage >= 70 %}#34d399{% elif rec.match_percentage >= 40 %}#fbbf24{% else %}#f87171{% endif %}; font-weight: 600;">
+                                {{ rec.match_percentage }}%
+                            </span>
+                        </div>
+                        <div class="progress progress-custom mb-2">
+                            <div class="progress-bar" role="progressbar" style="width: {{ rec.match_percentage }}%; background-color: {% if rec.match_percentage >= 70 %}#10b981{% elif rec.match_percentage >= 40 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+                        </div>
+                        {% if rec.skill_improvements %}
+                            <div class="text-muted small" style="font-size: 11px;">
+                                <span class="text-secondary font-weight-500">Missing:</span> {{ rec.skill_improvements }}
+                            </div>
+                        {% else %}
+                            <div class="text-success small" style="font-size: 11px;">
+                                Ready to apply!
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if latest_ats %}
+        // ATS Overall Gauge (Doughnut Chart)
+        const score = {{ latest_ats.overall_score }};
+        const ctxGauge = document.getElementById('atsGaugeChart').getContext('2d');
+        new Chart(ctxGauge, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [score, 100 - score],
+                    backgroundColor: [
+                        score >= 75 ? '#10b981' : (score >= 50 ? '#f59e0b' : '#ef4444'),
+                        'rgba(255, 255, 255, 0.05)'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: [10, 0]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '82%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+        {% endif %}
+
+        {% if skills_by_category %}
+        // Skills Category Distribution (Radar/Polar Chart or Horizontal Bar)
+        const categories = ['Languages', 'Frameworks', 'Databases', 'Tools', 'Methodologies', 'Soft Skills'];
+        const dataValues = [
+            {{ skills_by_category.programming_language }},
+            {{ skills_by_category.framework }},
+            {{ skills_by_category.database }},
+            {{ skills_by_category.tool }},
+            {{ skills_by_category.technology }},
+            {{ skills_by_category.soft_skill }}
+        ];
+
+        const ctxSkills = document.getElementById('skillsDistributionChart').getContext('2d');
+        new Chart(ctxSkills, {
+            type: 'bar',
+            data: {
+                labels: categories,
+                datasets: [{
+                    label: 'Skills Count',
+                    data: dataValues,
+                    backgroundColor: [
+                        'rgba(99, 102, 241, 0.75)',
+                        'rgba(168, 85, 247, 0.75)',
+                        'rgba(236, 72, 153, 0.75)',
+                        'rgba(16, 185, 129, 0.75)',
+                        'rgba(245, 158, 11, 0.75)',
+                        'rgba(239, 68, 68, 0.75)'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8', stepSize: 1, beginAtZero: true }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#f8fafc', font: { family: 'Inter', size: 11 } }
+                    }
+                }
+            }
+        });
+        {% endif %}
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy
+PyMySQL
+cryptography
+python-dotenv
+spacy
+sentence-transformers
+pdfplumber
+PyPDF2
+scikit-learn
+numpy
+reportlab
