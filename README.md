@@ -1,4 +1,4 @@
-````md
+
 # Resume Booster 🚀
 
 AI-powered Resume Analysis and ATS Optimization Platform built using Flask, NLP, and Deep Learning.
@@ -269,5 +269,4 @@ GitHub: https://github.com/pranjal885
 
 Give it a star on GitHub ⭐
 
-```
-```
+
