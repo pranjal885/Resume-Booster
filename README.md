@@ -209,7 +209,8 @@ Dashboard Analytics
 
 ## Dashboard
 
-(Add Screenshot Here)
+<img width="1838" height="863" alt="image" src="https://github.com/user-attachments/assets/89d86e2c-4b61-4dbb-a7bb-bf5ae456d24b" />
+
 
 ## ATS Analysis
 
