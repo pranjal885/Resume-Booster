@@ -214,11 +214,17 @@ Dashboard Analytics
 
 ## ATS Analysis
 
-(Add Screenshot Here)
+<img width="1832" height="866" alt="image" src="https://github.com/user-attachments/assets/a433f700-b5b1-4b9f-a271-3a170d9338a0" />
+<img width="1839" height="856" alt="image" src="https://github.com/user-attachments/assets/487713ba-6a1b-4abe-a269-eab635bf152c" />
+<img width="1830" height="865" alt="image" src="https://github.com/user-attachments/assets/ba34d220-951e-41df-b5a2-e3873937c0b7" />
+
+
+
 
 ## AI Resume Coach
 
-(Add Screenshot Here)
+<img width="1797" height="866" alt="image" src="https://github.com/user-attachments/assets/e6d2c3c6-d555-4276-ab4f-bd7f2e492228" />
+
 
 ---
 
