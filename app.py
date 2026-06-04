@@ -8,7 +8,7 @@ def create_app():
     app.config.from_object(Config)
     
     # Initialize DB
-    db.init_app(app)
+    db.init_app(app) #Connects Flask app with SQLAlchemy database.
     
     # Register Blueprints
     from routes.auth import auth_bp

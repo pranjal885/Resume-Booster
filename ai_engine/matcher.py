@@ -1,60 +1,62 @@
-import numpy as np
-from sentence_transformers import SentenceTransformer
 
-# Cache the model in memory to avoid reloading it on every request
-_model = None
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-def get_model():
+
+def preprocess_text(text):
     """
-    Loads and caches the SentenceTransformer model.
+    Clean and normalize text before vectorization.
     """
-    global _model
-    if _model is None:
-        print("[AI INFO] Loading SentenceTransformer model 'all-MiniLM-L6-v2'...")
-        # This will download the model to the local machine on first run
-        _model = SentenceTransformer('all-MiniLM-L6-v2')
-    return _model
+    if not text:
+        return ""
+
+    # Convert to lowercase
+    text = text.lower()
+
+    # Remove special characters
+    text = re.sub(r'[^a-zA-Z0-9\s]', ' ', text)
+
+    # Remove extra spaces
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    return text
+
 
 def calculate_semantic_similarity(resume_text, job_desc_text):
     """
-    Calculates semantic cosine similarity between resume text and target job description.
-    Formula: cos(theta) = (A . B) / (||A|| ||B||)
+    Calculates similarity between resume and job description
+    using TF-IDF vectorization + cosine similarity.
     """
+
     if not resume_text.strip() or not job_desc_text.strip():
         return 0.0, 0.0
-        
+
     try:
-        model = get_model()
-        
-        # Generate embeddings
-        embeddings = model.encode([resume_text, job_desc_text])
-        emb_resume = embeddings[0]
-        emb_job = embeddings[1]
-        
-        # Calculate dot product
-        dot_product = np.dot(emb_resume, emb_job)
-        
-        # Calculate norms
-        norm_resume = np.linalg.norm(emb_resume)
-        norm_job = np.linalg.norm(emb_job)
-        
-        if norm_resume == 0.0 or norm_job == 0.0:
-            return 0.0, 0.0
-            
-        cosine_similarity = dot_product / (norm_resume * norm_job)
-        
-        # Normalize similarity: Cosine similarity for these embeddings is typically 0 to 1
-        # Let's map it to percentage (0 - 100)
-        similarity_score = float(cosine_similarity)
-        
-        # Match percentage can be calculated or adjusted slightly for user display
-        # A raw cosine similarity of 0.4 with MiniLM often indicates a moderate match.
-        # Let's scale it slightly to feel natural as a Job Match percentage (e.g. 0.3 -> 30%, 0.7 -> 90%)
-        # But keeping it mathematically grounded.
-        match_percentage = max(0.0, min(100.0, similarity_score * 100))
-        
-        return similarity_score, round(match_percentage, 2)
-        
+        # Preprocess texts
+        resume_text = preprocess_text(resume_text)
+        job_desc_text = preprocess_text(job_desc_text)
+
+        # Create TF-IDF vectors
+        vectorizer = TfidfVectorizer(stop_words='english')
+
+        tfidf_matrix = vectorizer.fit_transform([
+            resume_text,
+            job_desc_text
+        ])
+
+        # Calculate cosine similarity
+        similarity = cosine_similarity(
+            tfidf_matrix[0:1],
+            tfidf_matrix[1:2]
+        )[0][0]
+
+        # Convert to percentage
+        match_percentage = round(float(similarity * 100), 2)
+
+        return float(similarity), match_percentage
+
     except Exception as e:
-        print(f"[AI ERROR] Sentence Transformer matching failed: {e}")
+        print(f"[AI ERROR] Similarity calculation failed: {e}")
         return 0.0, 0.0
+
