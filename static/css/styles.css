@@ -1,51 +1,29 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --bg-dark: #0a0f1d;
-    --sidebar-bg: #111827;
-    --card-bg: rgba(20, 27, 45, 0.72);
-    --border-color: rgba(255, 255, 255, 0.08);
+    --bg-dark: #F6F1EB;
+    --sidebar-bg: #24211E;
+    --card-bg: #FFFFFF;
+    --border-color: #E4DDD4;
 
-    --accent-glow: linear-gradient(
-        135deg,
-        #6366f1 0%,
-        #8b5cf6 50%,
-        #a855f7 100%
-    );
+    --accent-glow: #B85C38;
 
-    --gradient-primary: linear-gradient(
-        135deg,
-        #4f46e5 0%,
-        #7c3aed 100%
-    );
+    --gradient-primary: #B85C38;
 
-    --gradient-success: linear-gradient(
-        135deg,
-        #10b981 0%,
-        #059669 100%
-    );
+    --gradient-success: #6B7D5B;
 
-    --gradient-warning: linear-gradient(
-        135deg,
-        #f59e0b 0%,
-        #d97706 100%
-    );
+    --gradient-warning: #C58A3A;
 
-    --gradient-danger: linear-gradient(
-        135deg,
-        #ef4444 0%,
-        #dc2626 100%
-    );
+    --gradient-danger: #B94A48;
 
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
+    --text-primary: #26231F;
+    --text-secondary: #655F58;
+    --text-muted: #8A8279;
 
-    --input-bg: rgba(15, 23, 42, 0.8);
+    --input-bg: #FBF9F6;
 
     --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 25px rgba(99, 102, 241, 0.18);
+    --shadow-glow: 0 0 25px rgba(184, 92, 56, 0.16);
 }
 
 /* =========================================================
@@ -63,24 +41,14 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
 
-    background-image:
-        radial-gradient(
-            at 0% 0%,
-            rgba(99, 102, 241, 0.14) 0px,
-            transparent 50%
-        ),
-        radial-gradient(
-            at 100% 100%,
-            rgba(168, 85, 247, 0.08) 0px,
-            transparent 50%
-        );
+    background-image: none;
 }
 
 h1, h2, h3, h4, h5, h6,
 .brand-font {
     font-family: 'Outfit', sans-serif;
     font-weight: 600;
-    color: #ffffff;
+    color: #26231F;
 }
 
 p,
@@ -171,7 +139,7 @@ div {
     font-weight: bold;
     font-size: 18px;
 
-    box-shadow: 0 0 18px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 12px rgba(55, 45, 38, 0.14);
 }
 
 .sidebar-menu {
@@ -209,8 +177,8 @@ div {
 }
 
 .sidebar-link:hover {
-    background: rgba(255, 255, 255, 0.04);
-    color: #ffffff;
+    background: #F3EEE8;
+    color: #26231F;
 }
 
 .sidebar-link.active {
@@ -218,7 +186,7 @@ div {
     color: white;
 
     box-shadow:
-        0 4px 15px rgba(99, 102, 241, 0.22);
+        0 4px 15px rgba(184, 92, 56, 0.18);
 }
 
 .sidebar-footer {
@@ -305,7 +273,7 @@ div {
     transform: translateY(-1px);
 
     box-shadow:
-        0 0 20px rgba(99, 102, 241, 0.35);
+        0 0 20px rgba(184, 92, 56, 0.25);
 }
 
 .btn-outline-custom {
@@ -323,7 +291,7 @@ div {
 }
 
 .btn-outline-custom:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: #F3EEE8;
 }
 
 /* =========================================================
@@ -331,7 +299,7 @@ div {
 ========================================================= */
 
 .upload-zone {
-    border: 2px dashed rgba(255, 255, 255, 0.14);
+    border: 2px dashed #D8CFC5;
 
     border-radius: 16px;
 
@@ -339,7 +307,7 @@ div {
 
     text-align: center;
 
-    background: rgba(15, 23, 42, 0.35);
+    background: #FBF9F6;
 
     cursor: pointer;
 
@@ -348,9 +316,9 @@ div {
 
 .upload-zone:hover,
 .upload-zone.dragover {
-    border-color: #6366f1;
+    border-color: #B85C38;
 
-    background: rgba(99, 102, 241, 0.05);
+    background: rgba(184, 92, 56, 0.05);
 }
 
 .upload-icon {
@@ -375,7 +343,7 @@ div {
 
     border: 1px solid var(--border-color);
 
-    color: #ffffff !important;
+    color: #26231F !important;
 
     border-radius: 10px;
 
@@ -387,10 +355,10 @@ div {
 .form-control-custom:focus {
     background-color: var(--input-bg);
 
-    border-color: #7c3aed;
+    border-color: #9F4D30;
 
     box-shadow:
-        0 0 10px rgba(124, 58, 237, 0.2);
+        0 0 10px rgba(159, 77, 48, 0.18);
 
     outline: none;
 }
@@ -405,7 +373,7 @@ div {
 }
 
 .table-custom th {
-    background: rgba(255, 255, 255, 0.02) !important;
+    background: #F8F5F1 !important;
 
     border-bottom: 1px solid var(--border-color) !important;
 
@@ -424,7 +392,7 @@ div {
 
     border-bottom: 1px solid var(--border-color) !important;
 
-    color: #ffffff !important;
+    color: #26231F !important;
 
     vertical-align: middle;
 }
@@ -445,7 +413,7 @@ div {
 .badge-excellent {
     background: rgba(16, 185, 129, 0.15);
 
-    color: #34d399;
+    color: #6B7D5B;
 
     border: 1px solid rgba(16, 185, 129, 0.25);
 }
@@ -453,7 +421,7 @@ div {
 .badge-good {
     background: rgba(245, 158, 11, 0.15);
 
-    color: #fbbf24;
+    color: #B2762C;
 
     border: 1px solid rgba(245, 158, 11, 0.25);
 }
@@ -461,7 +429,7 @@ div {
 .badge-weak {
     background: rgba(239, 68, 68, 0.15);
 
-    color: #f87171;
+    color: #B94A48;
 
     border: 1px solid rgba(239, 68, 68, 0.25);
 }
@@ -473,7 +441,7 @@ div {
 .progress-custom {
     height: 8px;
 
-    background: rgba(255, 255, 255, 0.05);
+    background: #F1ECE6;
 
     border-radius: 10px;
 
@@ -520,7 +488,7 @@ div {
 .chat-bubble.bot {
     align-self: flex-start;
 
-    background: rgba(255, 255, 255, 0.05);
+    background: #F1ECE6;
 
     border: 1px solid var(--border-color);
 
@@ -542,7 +510,7 @@ div {
 
     border-top: 1px solid var(--border-color);
 
-    background: rgba(15, 23, 42, 0.25);
+    background: #F3EEE8;
 
     border-bottom-left-radius: 16px;
     border-bottom-right-radius: 16px;
@@ -551,7 +519,7 @@ div {
 .chat-chip {
     padding: 6px 14px;
 
-    background: rgba(255, 255, 255, 0.04);
+    background: #F3EEE8;
 
     border: 1px solid var(--border-color);
 
@@ -571,11 +539,11 @@ div {
 }
 
 .chat-chip:hover {
-    background: rgba(99, 102, 241, 0.08);
+    background: rgba(184, 92, 56, 0.07);
 
-    border-color: #6366f1;
+    border-color: #B85C38;
 
-    color: #ffffff;
+    color: #26231F;
 }
 
 /* =========================================================
@@ -591,7 +559,7 @@ div {
 .missing-keyword,
 .weak-keyword {
 
-    color: #ffffff !important;
+    color: #26231F !important;
 
     opacity: 1 !important;
 
@@ -615,7 +583,7 @@ div {
 
     border: 1px solid rgba(245, 158, 11, 0.45) !important;
 
-    color: #fbbf24 !important;
+    color: #B2762C !important;
 }
 
 /* =========================================================
@@ -656,7 +624,7 @@ div {
     width: 100vw;
     height: 100vh;
 
-    background: rgba(9, 13, 22, 0.88);
+    background: rgba(36, 33, 30, 0.82);
 
     backdrop-filter: blur(8px);
 
@@ -683,9 +651,9 @@ div {
     width: 60px;
     height: 60px;
 
-    border: 4px solid rgba(255, 255, 255, 0.08);
+    border: 4px solid #E4DDD4;
 
-    border-top-color: #6366f1;
+    border-top-color: #B85C38;
 
     border-radius: 50%;
 
@@ -758,13 +726,13 @@ div {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: #D8CFC5;
 
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: #C8BDB2;
 }
 
 /* =========================================================
@@ -772,8 +740,8 @@ div {
 ========================================================= */
 
 ::selection {
-    background: rgba(99, 102, 241, 0.35);
-    color: #ffffff;
+    background: rgba(184, 92, 56, 0.25);
+    color: #26231F;
 }
 
 
@@ -792,11 +760,11 @@ div {
 .badge,
 .badge-custom {
 
-    background: rgba(99, 102, 241, 0.14) !important;
+    background: rgba(184, 92, 56, 0.06) !important;
 
-    color: #ffffff !important;
+    color: #26231F !important;
 
-    border: 1px solid rgba(99, 102, 241, 0.22) !important;
+    border: 1px solid rgba(184, 92, 56, 0.18) !important;
 
     font-weight: 600 !important;
 
@@ -814,9 +782,9 @@ div {
 .bg-light,
 .bg-white {
 
-    background: rgba(99, 102, 241, 0.14) !important;
+    background: rgba(184, 92, 56, 0.06) !important;
 
-    color: #ffffff !important;
+    color: #26231F !important;
 }
 
 /* Skills section specific fix */
@@ -833,7 +801,7 @@ div {
 .skills-container span,
 .skills-container div {
 
-    color: #ffffff !important;
+    color: #26231F !important;
 
     opacity: 1 !important;
 }
@@ -844,7 +812,7 @@ div {
 
     background: rgba(239, 68, 68, 0.18) !important;
 
-    color: #ffffff !important;
+    color: #26231F !important;
 
     border: 1px solid rgba(239, 68, 68, 0.45) !important;
 }
@@ -855,7 +823,7 @@ div {
 
     background: rgba(245, 158, 11, 0.18) !important;
 
-    color: #fbbf24 !important;
+    color: #B2762C !important;
 
     border: 1px solid rgba(245, 158, 11, 0.45) !important;
 }
@@ -866,7 +834,7 @@ div {
 [class*="pill"],
 [class*="chip"] {
 
-    color: #ffffff !important;
+    color: #26231F !important;
 
     opacity: 1 !important;
 }
@@ -887,3 +855,167 @@ div {
     -webkit-text-fill-color: currentColor !important;
 }
 
+
+
+/* =========================================================
+   WARM PROFESSIONAL THEME OVERRIDES
+   No blue/purple accents — intentionally restrained.
+========================================================= */
+
+.sidebar-link.active {
+    background: #B85C38 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(55, 45, 38, 0.12) !important;
+}
+
+.sidebar-link.active i,
+.brand-icon,
+.btn-primary-custom,
+.stat-icon {
+    color: #FFFFFF !important;
+}
+
+.brand-icon {
+    background: #B85C38 !important;
+}
+
+.btn-primary-custom {
+    background: #B85C38 !important;
+}
+
+.btn-primary-custom:hover {
+    background: #9F4D30 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(55, 45, 38, 0.14) !important;
+}
+
+.upload-icon {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    -webkit-text-fill-color: #B85C38 !important;
+    color: #B85C38 !important;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+    border-color: #B85C38 !important;
+    background: #FCF8F4 !important;
+}
+
+.form-control-custom:focus {
+    border-color: #B85C38 !important;
+    box-shadow: 0 0 0 3px rgba(184, 92, 56, 0.10) !important;
+}
+
+.progress-bar-custom {
+    background: #B85C38 !important;
+}
+
+.chat-bubble.user {
+    background: #B85C38 !important;
+    color: #FFFFFF !important;
+}
+
+.chat-chip:hover {
+    background: rgba(184, 92, 56, 0.07) !important;
+    border-color: #B85C38 !important;
+    color: #26231F !important;
+}
+
+.loader-spinner {
+    border-top-color: #B85C38 !important;
+}
+
+.skill-tag,
+.skill-pill,
+.keyword-tag,
+.keyword-pill,
+.keyword-chip,
+.keyword-badge,
+.badge,
+.badge-custom {
+    background: rgba(184, 92, 56, 0.10) !important;
+    color: #7E3F29 !important;
+    border-color: rgba(184, 92, 56, 0.18) !important;
+}
+
+.badge-excellent {
+    background: rgba(107, 125, 91, 0.12) !important;
+    color: #596A4B !important;
+    border-color: rgba(107, 125, 91, 0.22) !important;
+}
+
+.badge-good {
+    background: rgba(197, 138, 58, 0.12) !important;
+    color: #8B5E21 !important;
+    border-color: rgba(197, 138, 58, 0.22) !important;
+}
+
+.badge-weak {
+    background: rgba(185, 74, 72, 0.10) !important;
+    color: #963B3A !important;
+    border-color: rgba(185, 74, 72, 0.20) !important;
+}
+
+body {
+    background-color: #F6F1EB !important;
+    color: #26231F !important;
+}
+
+.glass-card {
+    background: #FFFFFF !important;
+    border-color: #E4DDD4 !important;
+    box-shadow: 0 6px 20px rgba(55, 45, 38, 0.06) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.glass-card:hover {
+    box-shadow: 0 8px 22px rgba(55, 45, 38, 0.10) !important;
+}
+
+.main-content {
+    background: #F6F1EB;
+}
+
+.text-muted,
+.text-secondary,
+.section-description,
+.analysis-description,
+.card-description,
+.feedback-text,
+.helper-text,
+.small-text {
+    color: #655F58 !important;
+}
+
+.sidebar-link {
+    color: #C9C0B7 !important;
+}
+
+.sidebar-link:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #FFFFFF !important;
+}
+
+.table-custom th {
+    background: #FAF7F3 !important;
+    color: #655F58 !important;
+}
+
+.table-custom td {
+    color: #26231F !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #CFC5BA !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #B8AA9C !important;
+}
+
+::selection {
+    background: rgba(184, 92, 56, 0.20) !important;
+    color: #26231F !important;
+}
