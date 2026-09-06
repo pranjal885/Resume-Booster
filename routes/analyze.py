@@ -1,11 +1,13 @@
-import os
-import json
-from io import BytesIO
+import os#Used for operating-system-related functionality.
+import json#Used to convert between:Python dictionary ↔ JSON string
+from io import BytesIO#Creates an in-memory file.
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session, send_file
-from werkzeug.utils import secure_filename
+#send_file() → send PDF/file to browser
+from werkzeug.utils import secure_filename#helps create a safe filename for the generated PDF.
 
 from models import db, Resume, JobDescription, ATSScore, ExtractedSkill, Recommendation, InterviewQuestion
 from routes.dashboard import login_required
+#Only logged-in users can analyze resumes, see results, history, or download reports.
 from config import Config
 from utils.file_validator import save_uploaded_file
 
@@ -34,7 +36,7 @@ def index():
         # Check files
         if 'resume' not in request.files:
             flash('No resume file selected.', 'danger')
-            return redirect(request.url)
+            return redirect(request.url)#Show an error and return to the same page.
             
         file = request.files['resume']
         job_title = request.form.get('job_title', '').strip()
@@ -50,7 +52,7 @@ def index():
             flash(result, 'danger')
             return redirect(request.url)
             
-        file_path = result
+        file_path = result#If saving succeeded, result contains the path where the uploaded PDF was saved.
         
         try:
             # 1. Parse Resume Text and Structure
@@ -72,6 +74,7 @@ def index():
             )
             db.session.add(new_resume)
             db.session.flush() # Populate new_resume.id
+            #It sends the pending INSERT to the database without committing the entire transaction.
             
             # Save Target Job Description model
             new_job_desc = JobDescription(

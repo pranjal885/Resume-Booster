@@ -1,6 +1,7 @@
-import re
-import pdfplumber
-import PyPDF2
+import re #Python's regular expression module.
+import pdfplumber #Used to extract text from PDF files.
+import PyPDF2 #Another PDF-reading library.
+#In your project, it is used as a fallback if pdfplumber fails.
 
 
 def extract_text_from_pdf(pdf_path):
@@ -9,13 +10,16 @@ def extract_text_from_pdf(pdf_path):
     falling back to PyPDF2 if needed.
     """
     text = ""
+    #We're going to keep adding extracted page text into this string.
 
     try:
         with pdfplumber.open(pdf_path) as pdf:
+        #The with statement automatically handles closing the PDF after we're finished.
             for page in pdf.pages:
                 page_text = page.extract_text()
                 if page_text:
                     text += page_text + "\n"
+                #If text was successfully extracted, add it to our text variable.
 
     except Exception as e:
         print(f"[PARSER WARNING] pdfplumber failed: {e}")
@@ -24,6 +28,7 @@ def extract_text_from_pdf(pdf_path):
     if not text.strip():
         try:
             with open(pdf_path, 'rb') as f:
+            #Open the PDF in: rb = read binary mode. PDFs are binary files, so we open them using rb.
                 reader = PyPDF2.PdfReader(f)
 
                 for page in reader.pages:
@@ -43,11 +48,14 @@ def extract_email(text):
     Extract email using regex.
     """
     pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+    #This is a regular expression pattern.
 
     match = re.search(pattern, text)
+    #Searches the entire resume text for the first matching email.
 
     return match.group(0) if match else None
-
+    #If a match exists → return the email.
+    #If there isn't one → return:None
 
 def extract_phone(text):
     """
@@ -55,10 +63,11 @@ def extract_phone(text):
     """
     pattern = r'(?:(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}?\)?[-.\s]?\d{3,4}[-.\s]?\d{4})'
 
-    matches = re.findall(pattern, text)
+    matches = re.findall(pattern, text)#findall() finds all matching occurrences.
 
     for match in matches:
         digits = re.sub(r'\D', '', match)
+        #This removes everything that is not a digit.
 
         if 8 <= len(digits) <= 15:
             return match.strip()
@@ -71,11 +80,15 @@ def extract_name(text):
     Extract probable candidate name from top resume lines.
     """
     lines = [line.strip() for line in text.split('\n') if line.strip()]
+    #Split resume into lines
 
     for line in lines[:5]:
+        #Only look at first 5 lines
+        #Why? Because a resume usually puts the candidate's name near the top.
+        #So instead of checking the entire resume, the code checks only the first five meaningful lines.
 
         # Skip contact info
-        if '@' in line:
+        if '@' in line: #If the line contains @, it is probably an email.
             continue
 
         if any(word in line.lower() for word in [
@@ -83,16 +96,21 @@ def extract_name(text):
             'email', 'phone', 'portfolio'
         ]):
             continue
+        #Skip obvious headings
 
-        words = line.split()
+        words = line.split()#split lines into words
 
         # Typical name heuristic
-        if 2 <= len(words) <= 4:
+        if 2 <= len(words) <= 4: #The code assumes a likely name has between 2 and 4 words.
 
             if re.match(r'^[a-zA-Z\s\.\-]+$', line):
                 return line.title()
+            #.title() converts it to title case.
+            #For example:
+           #pranjal patil
+            #becomes:Pranjal Patil
 
-    return "Job Seeker"
+    return "Job Seeker" #If no likely name is found:
 
 
 def parse_sections(text):
@@ -136,7 +154,7 @@ def parse_sections(text):
 
     for idx, (line_idx, sec) in enumerate(found_headings):
 
-        start = line_idx + 1
+        start = line_idx + 1 #Start after the heading.
 
         end = (
             found_headings[idx + 1][0]

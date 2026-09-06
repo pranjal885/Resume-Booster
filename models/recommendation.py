@@ -12,4 +12,5 @@ class Recommendation(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
+    #This is mainly useful for debugging.
         return f"<Recommendation {self.job_title} ({self.match_percentage}%)>"

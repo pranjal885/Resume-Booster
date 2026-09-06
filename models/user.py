@@ -1,7 +1,11 @@
 from datetime import datetime
+#You're importing datetime so you can record when a user account was created.
 from werkzeug.security import generate_password_hash, check_password_hash
+#These two functions are used for password security.
 from models import db
 
+
+#create python class called user that inherits from db.Model. This means that the User class is a model that SQLAlchemy will use to create a table in the database.
 class User(db.Model):
     __tablename__ = 'users'
 

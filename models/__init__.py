@@ -1,6 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
+#You're importing SQLAlchemy from the Flask-SQLAlchemy library.
+#SQLAlchemy is a Python library that allows us to work with databases using Python objects/classes instead of writing SQL for everything.
 
-db = SQLAlchemy()
+db = SQLAlchemy() #you're creating the database object that your entire application will use.
 
 # Import models to ensure they are registered with metadata
 from models.user import User

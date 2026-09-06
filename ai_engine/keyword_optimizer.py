@@ -1,5 +1,8 @@
+#This file is responsible for checking:
+#Which important job-description keywords are missing from the resume, which ones are present only weakly, and how dense the technical keywords are.
+
 import re
-from collections import Counter
+from collections import Counter#Counter counts how many times each word appears.
 from ai_engine.skill_extractor import extract_skills
 
 
@@ -18,9 +21,11 @@ def preprocess_text(text):
     text = re.sub(r'[^\w\s\-\+#]', ' ', text)
 
     # Tokenize
+    #Break the text into individual words/tokens.
     words = text.split()
 
     # Simple stopwords
+    #These are common words that don't provide much useful information for keyword matching.
     stopwords = {
         'the', 'a', 'an', 'and', 'or', 'but',
         'in', 'on', 'at', 'to', 'for', 'with',
@@ -36,6 +41,14 @@ def preprocess_text(text):
         word for word in words
         if word not in stopwords and len(word) > 2
     ]
+   #Only words that:
+# aren't stopwords
+# have more than 2 characters
+# are kept.
+# Example:
+# "Python and SQL are required"
+# could become:
+# ["python", "sql", "required"]
 
 
 def extract_keywords_from_text(text):
@@ -44,6 +57,8 @@ def extract_keywords_from_text(text):
     """
 
     keywords = set()
+    #Why a set?
+    #Because sets automatically help avoid duplicates.
 
     # Extract known technical skills
     skills_data = extract_skills(text)
@@ -82,6 +97,20 @@ def optimize_keywords(resume_text, job_desc_text):
     # Frequency counts
     resume_freq = Counter(resume_tokens)
     job_freq = Counter(job_tokens)
+    #resume_freq = Counter(resume_tokens)
+# job_freq = Counter(job_tokens)
+
+# This tells us how frequently each word occurs.
+
+# For example:
+
+# resume_freq
+
+# could conceptually be:
+
+# python → 2
+# sql    → 1
+# docker → 1
 
     # Extract keywords
     resume_keywords = set(
