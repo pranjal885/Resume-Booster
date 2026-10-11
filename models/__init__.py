@@ -12,3 +12,5 @@ from models.job_description import JobDescription
 from models.ats_score import ATSScore
 from models.recommendation import Recommendation
 from models.interview_question import InterviewQuestion
+
+#We import all the models in models/__init__.py mainly so that SQLAlchemy knows about all your database tables/models when the application starts.

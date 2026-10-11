@@ -1,71 +1,83 @@
 import json
+import re
+import html
 from flask import Blueprint, render_template, request, jsonify, session
 from rapidfuzz import fuzz
-#RapidFuzz is a Python library used for fuzzy string matching.
-#Instead of requiring an exact match:
-#"missing skills"
-#it can recognize something similar like:
-#"What skills am I missing?"
 
 from models import (
     db,
     Resume,
+    JobDescription,
     ExtractedSkill,
     Recommendation,
     ATSScore
 )
-#These models allow the chat to access the user's stored data:
-#Resume, ExtractedSkill, Recommendation ,ATSScore
-#For example, if the user asks:What's my ATS score?
-#the chat can get the score from ATSScore.
-
 from routes.dashboard import login_required
-#only chat users who are logged in can access the chat page and send messages.
-
+from ai_engine.llm_client import call_llm, is_ai_available
 
 chat_bp = Blueprint('chat', __name__)
 
+def format_markdown_to_html(text):
+    """
+    Converts Gemini Markdown text (bold, bullet points, headers, line breaks)
+    into safe HTML for clean display in the chat UI.
+    """
+    if not text:
+        return ""
+    # Safely escape HTML characters first to prevent XSS
+    escaped = html.escape(text)
+    
+    # Convert bold: **text** or __text__ -> <b>text</b>
+    formatted = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', escaped)
+    formatted = re.sub(r'__(.*?)__', r'<b>\1</b>', formatted)
+    
+    # Convert italic: *text* or _text_ -> <i>text</i>
+    formatted = re.sub(r'(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)', r'<i>\1</i>', formatted)
+    
+    # Convert headings: ### Heading -> <b>Heading</b>
+    formatted = re.sub(r'^#{1,6}\s*(.*?)$', r'<b>\1</b>', formatted, flags=re.MULTILINE)
+    
+    # Convert bullet points: line starting with * or - -> •
+    formatted = re.sub(r'^\s*[\*\-]\s+', r'• ', formatted, flags=re.MULTILINE)
+    
+    # Convert linebreaks to <br>
+    formatted = formatted.replace('\n', '<br>')
+    formatted = re.sub(r'(<br>\s*){3,}', '<br><br>', formatted)
+    
+    return formatted
 
 # =========================================================
-# INTENT DATABASE
+# INTENT DATABASE (Rule-based Fallback)
 # =========================================================
-
-#This dictionary contains the different types of questions your chatbot understands.
 INTENTS = {
-
     "summary": [
         "generate summary",
         "resume summary",
         "profile summary",
         "professional summary"
     ],
-
     "missing_skills": [
         "missing skills",
         "skills to improve",
         "skills to add",
         "skill gaps"
     ],
-
     "certifications": [
         "certifications",
         "courses",
         "aws cert",
         "best certifications"
     ],
-
     "projects": [
         "projects section",
         "improve projects",
         "project ideas"
     ],
-
     "ats_score": [
         "ats score",
         "resume score",
         "resume strength"
     ],
-
     "action_verbs": [
         "action verbs",
         "better wording",
@@ -73,110 +85,43 @@ INTENTS = {
     ]
 }
 
-
-# =========================================================
-# LIGHTWEIGHT INTENT DETECTION
-# =========================================================
-
 def detect_intent(user_input):
-#This function determines what the user is asking for.
-
+    """
+    Determines user intent using fuzzy string matching (Fallback).
+    """
     user_input = user_input.lower()
-    #convert the user input to lowercase to make the matching case-insensitive.
-
     best_intent = None
     best_score = 0
-    #As we compare the user's question against the examples, we'll update these values.
 
     for intent, samples in INTENTS.items():
-    #Loop through intents
-    #intent = "ats_score"
-    #samples = [
-    #    "ats score",
-    #    "resume score",
-    #    "resume strength"
-    #]
-
         for sample in samples:
-        #Loop through sample phrases for each intent
-
-            score = fuzz.partial_ratio(
-                user_input,
-                sample
-            )
-            #This calculates how similar the user's message is to the sample phrase.
-            #partial_ratio() is useful when one string contains a phrase similar to another.
-        #     For example:
-        #    User: "What is my current ATS score?"
-        #    Sample: "ats score"
-        #    The similarity score will be high.
-        #    The exact numeric result depends on the strings.
-
+            score = fuzz.partial_ratio(user_input, sample)
             if score > best_score:
-
                 best_score = score
                 best_intent = intent
 
-    # Confidence threshold
     if best_score < 55:
         return "unknown"
-    #for e.g., if the user asks a question unrelated to resumes, like:
-    #User:"Tell me a joke"
-   #Similarity with resume-related intents → low
-    #best_score = 20
-    #20 < 55
-    #↓
-    #unknown
 
     return best_intent
-
-
-# =========================================================
-# CHAT PAGE
-# =========================================================
 
 @chat_bp.route('/chat')
 @login_required
 def index():
-#Creates: /chat , And protects it with: @login_required
-    
     return render_template('chat.html')
-
-
-# =========================================================
-# CHAT MESSAGE API
-# =========================================================
 
 @chat_bp.route('/chat/message', methods=['POST'])
 @login_required
 def message():
-
     user_id = session['user_id']
-    #Gets the logged-in user's ID.
-    #This is important because the chatbot needs to access that user's resume, not someone else's.
-
-    user_msg = request.json.get(
-        'message',
-        ''
-    ).strip().lower()
-    #This reads the JSON sent by the frontend.
-    #For example:{
-    #             "message": "  What is my ATS Score?  "
-    #            }
-    #becomes:"what is my ats score?"
+    user_msg = request.json.get('message', '').strip()
 
     if not user_msg:
-
-        return jsonify({
-            'response':
-                "Please ask a resume-related question."
-        })
-        #If the user sends nothing: The backend sends JSON back to the frontend.
+        return jsonify({'response': "Please ask a resume-related question."})
 
     # =====================================================
-    # LOAD USER DATA
+    # LOAD AUTHENTICATED USER DATA ONLY (STRICT SECURITY)
     # =====================================================
-
     latest_resume = Resume.query.filter_by(
         user_id=user_id
     ).order_by(
@@ -184,250 +129,152 @@ def message():
     ).first()
 
     skills_list = []
-
-    resume_name = "Job Seeker"
-
+    resume_name = session.get('username', 'Job Seeker')
     score_val = 0
-
     strength = "N/A"
-
     ats = None
-    #These are default values.
-    #If the user doesn't have a resume yet, the chatbot can still respond without crashing.
+    job_title = "Target Position"
+    job_desc = ""
+    parsed_text = ""
 
     if latest_resume:
-    
-        resume_name = latest_resume.name or "Job Seeker"
-        #If the user has a resume, we get the name from the database.
-        skills = ExtractedSkill.query.filter_by(
-            resume_id=latest_resume.id
-        ).all()
-        #Gets all skills belonging to the latest resume.
+        resume_name = latest_resume.name or resume_name
+        parsed_text = latest_resume.parsed_text or ""
+        
+        skills = ExtractedSkill.query.filter_by(resume_id=latest_resume.id).all()
+        skills_list = [s.skill_name for s in skills]
 
-        skills_list = [
-            s.skill_name
-            for s in skills
-        ]
-        #converts skills into a simple list:["Python", "Flask", "SQL", "Docker"]
-
-        ats = ATSScore.query.filter_by(
-            resume_id=latest_resume.id
-        ).order_by(
-            ATSScore.created_at.desc()
-        ).first()
-        #Gets the most recent ATS score for that resume.
-
+        ats = ATSScore.query.filter_by(resume_id=latest_resume.id).order_by(ATSScore.created_at.desc()).first()
         if ats:
-
             score_val = ats.overall_score
-
             strength = ats.strength_meter
+            job_record = JobDescription.query.get(ats.job_description_id)
+            if job_record:
+                job_title = job_record.title
+                job_desc = job_record.description_text
 
     # =====================================================
-    # DETECT INTENT
+    # 1. ATTEMPT REAL GEMINI AI CHATBOT RESPONSE
     # =====================================================
+    if is_ai_available():
+        system_instruction = (
+            "You are the AI Resume Assistant & Executive Career Coach for Resume Booster. "
+            "You are conversing directly with the authenticated user about their uploaded resume and job match. "
+            "Answer their questions accurately, specifically, and concisely using ONLY their provided context. "
+            "If they ask for bullet rewrites, summary generation, skill recommendations, or ATS feedback, "
+            "tailor your advice specifically to their resume content. "
+            "Do NOT fabricate experience or metrics. Format responses clearly with line breaks (<br>) and HTML lists where appropriate."
+        )
+        
+        prompt = f"""
+AUTHENTICATED USER RESUME CONTEXT:
+Candidate Name: {resume_name}
+Target Role: {job_title}
+Target Job Description: {job_desc[:1200] if job_desc else 'Not specified'}
 
-    intent = detect_intent(user_msg)
+RESUME TEXT:
+{parsed_text[:3000] if parsed_text else 'No resume uploaded yet.'}
+
+EXTRACTED SKILLS:
+{', '.join(skills_list) if skills_list else 'None detected'}
+
+LATEST ATS ASSESSMENT:
+Overall Score: {score_val}% ({strength})
+
+USER QUESTION:
+"{user_msg}"
+"""
+        ai_response = call_llm(prompt, system_instruction=system_instruction)
+        if ai_response:
+            formatted_response = format_markdown_to_html(ai_response)
+            return jsonify({'response': formatted_response})
 
     # =====================================================
-    # SUMMARY
+    # 2. RULE-BASED FALLBACK CHATBOT (If Gemini offline/unavailable)
     # =====================================================
+    intent = detect_intent(user_msg.lower())
 
     if intent == "summary":
-
         if not skills_list:
-
-            response = (
-                "Upload and analyze your resume first "
-                "so I can generate a professional summary."
-            )
-
+            response = "Upload and analyze your resume first so I can generate a professional summary."
         else:
-
             top_skills = skills_list[:4]
-            #take the first four skills.Then create a predefined summary:
-
             response = (
-                f"Professional Summary:<br><br>"
-
-                f"<i>Result-oriented developer skilled in "
-                f"{', '.join(top_skills)}. "
-                f"Experienced in building scalable applications, "
-                f"solving technical problems, and working on "
-                f"real-world software projects.</i>"
+                f"<b>Professional Summary Suggestion:</b><br><br>"
+                f"<i>Results-oriented professional skilled in {', '.join(top_skills)}. "
+                f"Experienced in building scalable applications, solving complex problems, and delivering key software features.</i>"
             )
-
-    # =====================================================
-    # ACTION VERBS
-    # =====================================================
 
     elif intent == "action_verbs":
-
         response = (
-            "Strong resume action verbs:<br><br>"
-
+            "<b>Strong resume action verbs:</b><br><br>"
+            "• Spearheaded<br>"
             "• Engineered<br>"
-            "• Developed<br>"
             "• Optimized<br>"
             "• Automated<br>"
             "• Implemented<br>"
-            "• Spearheaded"
+            "• Orchestrated"
         )
-
-    # =====================================================
-    # MISSING SKILLS
-    # =====================================================
 
     elif intent == "missing_skills":
-
         if not latest_resume:
-
-            response = (
-                "Upload and analyze your resume first."
-            )
-
+            response = "Upload and analyze your resume first."
         else:
-
-            recs = Recommendation.query.filter_by(
-                resume_id=latest_resume.id
-            ).order_by(
-                Recommendation.match_percentage.desc()
-            ).all()
-            #So it gets recommendations generated earlier by the analysis pipeline.
-
+            recs = Recommendation.query.filter_by(resume_id=latest_resume.id).order_by(Recommendation.match_percentage.desc()).all()
             if recs:
-
-                response = (
-                    "Recommended improvements:<br><br>"
-                )
-
+                response = "<b>Recommended Skill Improvements:</b><br><br>"
                 for r in recs[:3]:
-                #it creates a response showing:
-                # Job title
-                # Match percentage
-                # Skills to add
-
-                    gaps = (
-                        r.skill_improvements
-                        if r.skill_improvements
-                        else "Strong match."
-                    )
-
-                    response += (
-                        f"• <b>{r.job_title}</b> "
-                        f"({r.match_percentage}% Match)<br>"
-                        f"Skills to add: {gaps}<br><br>"
-                    )
-
+                    gaps = r.skill_improvements if r.skill_improvements else "Strong match."
+                    response += f"• <b>{r.job_title}</b> ({r.match_percentage}% Match)<br>Skills to add: {gaps}<br><br>"
             else:
-
-                response = (
-                    "No recommendation data available yet."
-                )
-
-    # =====================================================
-    # CERTIFICATIONS
-    # =====================================================
+                response = "No recommendation data available yet. Upload a resume on the Analyze page."
 
     elif intent == "certifications":
-    #Returns predefined certification suggestions.
-
         response = (
-            "Useful certifications for software roles:<br><br>"
-
-            "• AWS Cloud Practitioner<br>"
-            "• Google Data Analytics<br>"
-            "• IBM Data Science Certificate<br>"
-            "• Microsoft Azure Fundamentals"
+            "<b>Useful certifications for software roles:</b><br><br>"
+            "• AWS Certified Solutions Architect / Cloud Practitioner<br>"
+            "• Google Cloud Professional Developer<br>"
+            "• Kubernetes Application Developer (CKAD)<br>"
+            "• Microsoft Certified: Azure Fundamentals"
         )
-
-    # =====================================================
-    # PROJECTS
-    # =====================================================
 
     elif intent == "projects":
-
         response = (
-            "Strong technical projects should include:<br><br>"
-
-            "• Problem statement<br>"
-            "• Technologies used<br>"
-            "• Features implemented<br>"
-            "• Real-world impact<br>"
-            "• Metrics/results"
+            "<b>Structure for high-impact project descriptions:</b><br><br>"
+            "• <b>Problem statement</b> - What challenges were you solving?<br>"
+            "• <b>Technologies used</b> - List languages, frameworks, databases<br>"
+            "• <b>Key features</b> - What did you personally build?<br>"
+            "• <b>Measurable impact</b> - Performance speedup, user count, or accuracy improvement"
         )
-
-    # =====================================================
-    # ATS SCORE
-    # =====================================================
 
     elif intent == "ats_score":
-
         if latest_resume and ats:
-
             response = (
-                f"Current ATS Score: "
-                f"<b>{score_val}%</b><br><br>"
-                #The score itself comes from the database:score_val = ats.overall_score
-                #So the chatbot isn't calculating the score here.
-                #It's retrieving the previously calculated score.
-
-
-                f"Resume Strength: "
-                f"<b>{strength}</b><br><br>"
-
-                "Suggestions:<br>"
-                "• Add more technical keywords<br>"
-                "• Improve project descriptions<br>"
-                "• Add measurable achievements"
+                f"Current ATS Score: <b>{score_val}%</b><br>"
+                f"Resume Strength: <b>{strength}</b><br><br>"
+                "<b>Top recommendations to boost score:</b><br>"
+                "• Add key missing skills from the job description<br>"
+                "• Use strong action verbs at the start of bullet points<br>"
+                "• Quantify your project outcomes with metrics"
             )
-
         else:
+            response = "Please analyze your resume first on the Analyze page."
 
-            response = (
-                "Please analyze your resume first."
-            )
-
-    # =====================================================
-    # GREETINGS
-    # =====================================================
-
-    elif any(
-        word in user_msg
-        for word in ['hi', 'hello', 'hey']
-    ):
-    #This checks whether the user's message contains: it gives a friendly greeting if the user says "hi", "hello", or "hey".
-
+    elif any(word in user_msg.lower() for word in ['hi', 'hello', 'hey']):
         response = (
             f"Hello {resume_name}!<br><br>"
-
-            "I can help with:<br><br>"
-
-            "• ATS score improvement<br>"
-            "• Missing skills<br>"
-            "• Resume summaries<br>"
-            "• Certifications<br>"
-            "• Project improvements<br>"
-            "• Resume wording"
+            "I am your AI Resume Assistant. I can help you with:<br>"
+            "• Resume bullet point improvements<br>"
+            "• Personalized professional summaries<br>"
+            "• ATS score analysis and missing skills<br>"
+            "• Interview question preparation<br>"
+            "• Project description optimization"
         )
-
-    # =====================================================
-    # UNKNOWN QUESTIONS
-    # =====================================================
 
     else:
-
         response = (
-            "Please ask questions related to resumes, "
-            "ATS optimization, skills, projects, "
-            "or career guidance."
+            "I'm here to help optimize your resume and career strategy! "
+            "Try asking me to generate a summary, suggest missing skills, improve a project bullet point, or review your ATS score."
         )
 
-    # =====================================================
-    # RETURN RESPONSE
-    # =====================================================
-
-    return jsonify({
-        'response': response
-    })
-    #The backend sends the chatbot's answer back to the frontend as JSON.
+    return jsonify({'response': response})

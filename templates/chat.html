@@ -21,7 +21,7 @@
                     3. <b>"What are my missing skills?"</b> - Analyze gaps for recommended jobs.
                 </div>
             </div>
-            
+
             <!-- Quick Chips -->
             <div class="px-4 pb-2">
                 <div class="chat-chip" onclick="sendQuickMsg('Generate a summary')">📝 Generate Summary</div>
@@ -29,7 +29,7 @@
                 <div class="chat-chip" onclick="sendQuickMsg('What are my missing skills?')">🔍 Review Missing Skills</div>
                 <div class="chat-chip" onclick="sendQuickMsg('Check my latest ATS score')">📊 Check ATS Score</div>
             </div>
-            
+
             <!-- Input area -->
             <div class="chat-input-area">
                 <form id="chatForm" class="d-flex gap-2">
@@ -48,52 +48,100 @@
         const chatForm = document.getElementById("chatForm");
         const chatInput = document.getElementById("chatInput");
         const chatMessages = document.getElementById("chatMessages");
-        
-        chatForm.addEventListener("submit", function(e) {
+
+        chatForm.addEventListener("submit", async function(e) {
             e.preventDefault();
+
             const message = chatInput.value.trim();
             if (!message) return;
-            
-            // Append User message
+
             appendMessage(message, "user");
             chatInput.value = "";
-            
-            // Append loading indicator
-            const loadingBubble = appendMessage("<i class='fa-solid fa-spinner fa-spin me-2'></i>Thinking...", "bot");
-            
-            // Call API
-            fetch("{{ url_for('chat.message') }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ message: message })
-            })
-            .then(res => res.json())
-            .then(data => {
-                // Remove loading bubble
-                loadingBubble.remove();
-                // Append bot response
-                appendMessage(data.response, "bot");
-            })
-            .catch(err => {
-                loadingBubble.remove();
-                appendMessage("Sorry, I encountered an error connecting to the server. Please try again.", "bot");
-            });
+
+            const loadingBubble = appendMessage(
+                "<i class='fa-solid fa-spinner fa-spin me-2'></i>Thinking...",
+                "bot"
+            );
+
+            try {
+                const res = await fetch("{{ url_for('chat.message') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                // Read as text first. This lets us diagnose redirects or
+                // unexpected HTML instead of treating them as a generic
+                // network failure.
+                const rawText = await res.text();
+
+                let data;
+                try {
+                    data = JSON.parse(rawText);
+                } catch (parseError) {
+                    console.error("Invalid JSON from /chat/message:", {
+                        status: res.status,
+                        contentType: res.headers.get("content-type"),
+                        body: rawText
+                    });
+
+                    throw new Error("The server returned a non-JSON response.");
+                }
+
+                if (loadingBubble.isConnected) {
+                    loadingBubble.remove();
+                }
+
+                if (!res.ok) {
+                    console.error("Chat request failed:", res.status, data);
+
+                    appendMessage(
+                        data.response ||
+                        data.message ||
+                        "The server could not process your request. Please try again.",
+                        "bot"
+                    );
+                    return;
+                }
+
+                if (data && typeof data.response === "string" && data.response.trim()) {
+                    appendMessage(data.response, "bot");
+                } else {
+                    console.error("Unexpected chat response:", data);
+
+                    appendMessage(
+                        "I couldn't generate a response right now. Please try again.",
+                        "bot"
+                    );
+                }
+
+            } catch (err) {
+                console.error("Chat request error:", err);
+
+                if (loadingBubble.isConnected) {
+                    loadingBubble.remove();
+                }
+
+                appendMessage(
+                    "I couldn't connect to the AI Resume Coach right now. Please try again.",
+                    "bot"
+                );
+            }
         });
-        
+
         function appendMessage(text, sender) {
             const bubble = document.createElement("div");
             bubble.classList.add("chat-bubble", sender);
             bubble.innerHTML = text;
             chatMessages.appendChild(bubble);
-            
-            // Scroll to bottom
+
             chatMessages.scrollTop = chatMessages.scrollHeight;
             return bubble;
         }
 
-        // Expose quick message function to window scope
         window.sendQuickMsg = function(msg) {
             chatInput.value = msg;
             chatForm.dispatchEvent(new Event('submit'));

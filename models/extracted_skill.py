@@ -5,6 +5,9 @@ class ExtractedSkill(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     resume_id = db.Column(db.Integer, db.ForeignKey('resumes.id', ondelete='CASCADE'), nullable=False)
+    #'resumes.id'
+    #     ↑    ↑
+    #  table  column
     skill_name = db.Column(db.String(100), nullable=False)
     skill_type = db.Column(db.String(50), nullable=False)  # e.g., 'language', 'framework', 'database', 'tool', 'soft_skill'
 

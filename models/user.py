@@ -17,6 +17,7 @@ class User(db.Model):
 
     # Relationships
     resumes = db.relationship('Resume', backref='user', cascade='all, delete-orphan', lazy=True)
+    #db.relationship('Resume') defines the relationship between User and Resume, allowing one user to have multiple resumes and allowing each resume to access its associated user.
     job_descriptions = db.relationship('JobDescription', backref='user', cascade='all, delete-orphan', lazy=True)
 
     def set_password(self, password):
@@ -27,3 +28,5 @@ class User(db.Model):
 
     def __repr__(self):
         return f"<User {self.username}>"
+    #__repr__() defines a readable representation of the User object.
+    # In this case, it displays the username of the user.

@@ -1,279 +1,233 @@
-
 # Resume Booster 🚀
 
-AI-powered Resume Analysis and ATS Optimization Platform built using Flask, NLP, and Deep Learning.
+An AI-powered Resume Analysis and ATS Optimization Platform built using Flask, Python, NLP, and Google Gemini AI.
 
----
+## 📌 Overview
 
-# 📌 Overview
+Resume Booster helps users analyze and improve their resumes for Applicant Tracking Systems (ATS) and job applications.
 
-Resume Booster is an intelligent resume optimization platform that helps users improve their resumes for Applicant Tracking Systems (ATS) and job applications.
+The platform evaluates resume quality, identifies missing skills and keywords, compares resumes with job descriptions, and provides personalized recommendations. With Google Gemini AI integration, it also generates resume improvements, professional summaries, interview questions, job role recommendations, and contextual resume guidance through an AI chatbot.
 
-The platform analyzes resumes, compares them semantically with job descriptions, calculates ATS scores, detects missing skills, and provides AI-powered suggestions for improvement.
+The application combines rule-based analysis and traditional NLP techniques with generative AI to provide useful results, while retaining fallback functionality when AI services are unavailable.
 
-It also includes an AI Resume Coach capable of answering resume-related queries intelligently using NLP and semantic intent matching.
+## ✨ Features
 
----
+### ✅ ATS Resume Analysis
+- Calculates an ATS compatibility score.
+- Evaluates resume content and keyword relevance.
+- Identifies areas that need improvement.
+- Provides resume quality feedback.
 
-# ✨ Features
+### ✅ Resume–Job Description Matching
+- Uses TF-IDF and cosine similarity to calculate a match score.
+- Compares resume content with a target job description.
+- Uses Gemini AI to explain the match and suggest improvements.
 
-## ✅ ATS Resume Analysis
-- Calculates ATS compatibility score
-- Evaluates resume structure and keyword density
-- Provides resume strength meter
+### ✅ AI-Powered Resume Improvement
+- Analyzes resume quality using Gemini AI.
+- Improves resume bullet points with clearer, more professional wording.
+- Generates professional resume summaries.
+- Provides actionable suggestions for enhancing resume content.
 
-## ✅ Semantic Job Matching
-- Uses Sentence Transformers for semantic similarity
-- Matches resume with target job descriptions
-- Generates job match percentage
+### ✅ Skill Gap Analysis
+- Extracts and categorizes skills from resume content.
+- Identifies relevant missing skills.
+- Helps users understand which skills may need improvement for a target role.
 
-## ✅ AI Resume Coach
-- Interactive AI chatbot for resume guidance
-- Handles natural language queries
-- Supports spelling mistakes and short forms
-- Rejects unrelated questions intelligently
+### ✅ Job Role Recommendations
+- Recommends suitable job roles based on resume skills and experience.
+- Uses AI to generate personalized recommendations.
+- Provides fallback recommendations when AI is unavailable.
 
-## ✅ Skill Gap Analysis
-- Detects missing technical skills
-- Suggests skills required for target roles
-- Categorizes extracted skills
+### ✅ Interview Preparation
+- Generates personalized interview questions based on resume information and skills.
+- Helps users prepare for interviews related to their profiles.
+- Includes fallback question sets when AI services are unavailable.
 
-## ✅ Keyword Optimization
-- Detects missing and weak keywords
-- Calculates keyword density
-- Improves ATS visibility
+### ✅ AI Resume Coach
+- Provides an interactive chatbot for resume-related guidance.
+- Uses resume and job-related context when available.
+- Answers relevant career and resume questions.
+- Includes fallback handling for unavailable AI services.
 
-## ✅ Resume Suggestions
-- AI-powered improvement recommendations
-- Action verb suggestions
-- Resume enhancement tips
+## 🧠 AI and NLP Workflow
 
-## ✅ Interview Preparation
-- Generates interview-related guidance
-- Helps improve resume presentation
+The application combines traditional NLP methods, rule-based logic, and generative AI.
 
----
+1. Resume upload and text extraction.
+2. Resume parsing and skill extraction.
+3. ATS and resume quality analysis.
+4. TF-IDF and cosine similarity for job matching.
+5. Gemini AI analysis and personalized suggestions.
+6. AI-generated summaries, improved bullet points, interview questions, and job recommendations.
+7. Results displayed through the web interface.
 
-# 🧠 AI & NLP Features
+## 🛠️ Tech Stack
 
-- Semantic Similarity Matching
-- Sentence Embeddings
-- Cosine Similarity
-- NLP-based Skill Extraction
-- Intent Detection
-- Fuzzy Matching
-- AI Resume Coaching
-
----
-
-# 🛠️ Tech Stack
-
-# Frontend
+### Frontend
 - HTML
 - CSS
 - JavaScript
 - Bootstrap
 
-# Backend
-- Flask (Python)
+### Backend
+- Python
+- Flask
+- Flask Blueprints
 
-# AI / NLP
-- Sentence Transformers
-- spaCy
-- scikit-learn
-- RapidFuzz
+### AI and NLP
+- Google Gemini API
+- TF-IDF
+- Cosine Similarity
+- scikit-learn and other project-specific NLP libraries
 
-# Database
+### Database
 - SQLite
-- MySQL (Supported)
+- MySQL support
+- Flask-SQLAlchemy
 
----
+### Tools and Libraries
+- Python-dotenv for environment configuration
+- PDF processing libraries used by the project
+- PyMySQL for MySQL connectivity
 
-# 📂 Project Structure
+## 📂 Project Structure
 
-```bash
+```text
 Resume-Booster/
-│
 ├── ai_engine/
-├── database/
+│   ├── llm_client.py
+│   ├── analyzer.py
+│   ├── interview_generator.py
+│   ├── matcher.py
+│   └── recommendation.py
 ├── models/
 ├── routes/
+│   ├── analyze.py
+│   ├── auth.py
+│   └── chat.py
 ├── static/
 ├── templates/
-├── utils/
-│
-├── app.py
 ├── config.py
+├── app.py
 ├── requirements.txt
+├── .env.example
+├── test_ai_engine.py
 └── README.md
-````
+```
 
----
+*Note: This is a representative structure. Keep only files and folders that exist in your current repository.*
 
-# ⚙️ Installation
+## ⚙️ Installation and Setup
 
-## 1️⃣ Clone Repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/pranjal885/Resume-Booster.git
-```
-
----
-
-## 2️⃣ Navigate to Project
-
-```bash
 cd Resume-Booster
 ```
 
----
-
-## 3️⃣ Create Virtual Environment
+### 2. Create a Virtual Environment
 
 ```bash
 python -m venv venv
 ```
 
----
+### 3. Activate the Environment
 
-## 4️⃣ Activate Virtual Environment
+**Windows**
 
-### Windows
-
-```bash
-venv\Scripts\activate
+```powershell
+.\venv\Scripts\Activate.ps1
 ```
 
-### Linux / Mac
+**Linux / macOS**
 
 ```bash
 source venv/bin/activate
 ```
 
----
-
-## 5️⃣ Install Dependencies
+### 4. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
+### 5. Configure Environment Variables
 
-## 6️⃣ Run Application
+Create a `.env` file using `.env.example` as a reference.
+
+Configure the Gemini API key and model, along with the database settings supported by your application.
+
+Example:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-3.6-flash
+
+DB_USER=
+DB_PASSWORD=
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=resume_booster
+```
+
+Use your actual environment variable names from `llm_client.py` and `config.py`. Never commit your real API key or other secrets to GitHub.
+
+When `DB_USER` is empty, the current configuration selects SQLite. When valid MySQL settings are provided, the application attempts to connect to MySQL and falls back to SQLite if the connection fails.
+
+### 6. Run the Application
 
 ```bash
 python app.py
 ```
 
----
+Open the local URL displayed in the terminal.
 
-# 🔥 AI Workflow
+## 🧪 Testing
 
-```text
-Resume Upload
-      ↓
-Resume Parsing
-      ↓
-Skill Extraction
-      ↓
-NLP Preprocessing
-      ↓
-Sentence Embeddings
-      ↓
-Semantic Similarity Matching
-      ↓
-ATS Score Calculation
-      ↓
-AI Suggestions & Recommendations
-      ↓
-Dashboard Analytics
+Run the AI engine tests with:
+
+```bash
+python -m pytest test_ai_engine.py -v
 ```
 
----
+The test suite checks the AI engine functionality covered by the project tests. Live Gemini requests may depend on API quota and network availability.
 
-# 📊 Core Functionalities
+## 🛡️ Reliability and Fallback Handling
 
-| Feature              | Description                         |
-| -------------------- | ----------------------------------- |
-| ATS Score            | Calculates resume ATS compatibility |
-| Semantic Match       | Matches resume with job description |
-| Missing Skills       | Detects skill gaps                  |
-| AI Coach             | Resume guidance chatbot             |
-| Keyword Optimization | Improves ATS keywords               |
-| Resume Suggestions   | AI-powered improvement tips         |
+- Uses a centralized AI client for Gemini API calls.
+- Handles unavailable AI services through fallback logic where implemented.
+- Combines AI-generated output with traditional scoring and matching techniques.
+- Keeps API credentials in environment variables rather than source code.
 
----
+## 🚀 Future Improvements
 
-# 📸 Screenshots
+- Export improved resumes as downloadable PDFs.
+- Add more advanced resume–job matching.
+- Expand resume templates and formatting options.
+- Improve multi-resume comparison.
+- Enhance deployment and scalability.
 
-## Dashboard
-
-<img width="1838" height="863" alt="image" src="https://github.com/user-attachments/assets/89d86e2c-4b61-4dbb-a7bb-bf5ae456d24b" />
-
-
-## ATS Analysis
-
-<img width="1832" height="866" alt="image" src="https://github.com/user-attachments/assets/a433f700-b5b1-4b9f-a271-3a170d9338a0" />
-<img width="1839" height="856" alt="image" src="https://github.com/user-attachments/assets/487713ba-6a1b-4abe-a269-eab635bf152c" />
-<img width="1830" height="865" alt="image" src="https://github.com/user-attachments/assets/ba34d220-951e-41df-b5a2-e3873937c0b7" />
-
-
-
-
-## AI Resume Coach
-
-<img width="1797" height="866" alt="image" src="https://github.com/user-attachments/assets/e6d2c3c6-d555-4276-ab4f-bd7f2e492228" />
-
-
----
-
-# 🚀 Future Improvements
-
-* Resume Bullet Rewriter
-* PDF Resume Export
-* Advanced AI Recommendations
-* Cloud Deployment
-* Multi-Resume Comparison
-* Real-time Resume Scanning
-
----
-
-# 🧩 Challenges Solved
-
-* Semantic resume matching
-* ATS optimization
-* Intent detection for chatbot
-* NLP-based skill extraction
-* Responsive AI dashboard UI
-
----
-
-# 🎯 Learning Outcomes
+## 🎯 Learning Outcomes
 
 Through this project, I explored:
 
-* Full-stack Flask development
-* NLP and Deep Learning integration
-* Semantic similarity using embeddings
-* AI chatbot development
-* ATS optimization logic
-* Database design and management
+- Full-stack web application development using Flask.
+- Integration of Google Gemini AI into an existing application.
+- Prompt-based generation of structured and natural-language responses.
+- Resume analysis and ATS optimization.
+- TF-IDF and cosine similarity for text matching.
+- Database integration using Flask-SQLAlchemy.
+- API error handling and fallback mechanisms.
+- Testing and maintaining an AI-powered application.
+
+## 👨‍💻 Author
+
+**Pranjal Patil**
+
+GitHub: [pranjal885](https://github.com/pranjal885)
 
 ---
 
-# 👨‍💻 Author
-
-## Pranjal Patil
-
-AI & Full Stack Development Enthusiast
-
-GitHub: https://github.com/pranjal885
-
----
-
-# ⭐ If you like this project
-
-Give it a star on GitHub ⭐
-
-
+⭐ If you find this project useful, consider giving it a star!

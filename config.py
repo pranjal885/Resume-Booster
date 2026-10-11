@@ -5,12 +5,15 @@ from dotenv import load_dotenv
 
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(override=True)
 
 class Config:
+#I created the Config class to centralize all application configuration settings in one place, such as security, file upload settings, and database configuration. 
+#This makes the application easier to manage and configure.
 #You're creating a class whose purpose is to store application configuration.
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev_secret_key_resume_booster_2026')
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+    #this tells where should uploads folder stay
     #__file__ means:The path of the current Python file (config.py).
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB
     #Flask can use this configuration to limit the size of incoming requests/uploads.
@@ -29,11 +32,14 @@ class Config:
         # If no user is specified, fall back to SQLite
         if not db_user:
             sqlite_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resume_booster.db')
+            #Create the full path to the resume_booster.db database file, placing it in the same folder as config.py.
             print(f"[DB INFO] No DB_USER environment variable set. Using SQLite: {sqlite_path}")
             return f"sqlite:///{sqlite_path}"
+            #Tell SQLAlchemy to use SQLite and give it the location of the database file.
             
         mysql_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-        
+        #This line creates the MySQL database connection URL for SQLAlchemy
+
         # Test connecting using pymysql
         try:
             import pymysql

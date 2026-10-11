@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from models import db, User
 
 auth_bp = Blueprint('auth', __name__)#Creates a Blueprint called auth.
+#blueprint groups all related routes in one group
 
 @auth_bp.route('/register', methods=['GET', 'POST'])#This creates the /register route.
 #GET  → Show registration page
