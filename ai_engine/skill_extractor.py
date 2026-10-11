@@ -1,6 +1,7 @@
 import re
 
 # Comprehensive categorized dictionary of industry skills
+#This is basically a predefined dictionary of skills.
 SKILLS_VOCABULARY = {
     'programming_language': [
         'python', 'javascript', 'typescript', 'java', 'c\\+\\+', 'c#', 'c', 'ruby', 'php', 
@@ -62,8 +63,10 @@ def extract_skills(text):
         'technology': [],
         'soft_skill': []
     }
+    #As skills are found, they get added.
     
     flat_list = []
+    #Flat list : Useful when you simply want: What skills does this resume have?
     
     # Preprocess text slightly (lowercase, clean spaces)
     cleaned_text = re.sub(r'\s+', ' ', text).lower()
@@ -72,10 +75,14 @@ def extract_skills(text):
         for skill in skills:
             # Handle special characters in regex patterns (like c++)
             pattern = r'\b' + skill + r'\b'
+            #\b means a word boundary.
+            #Suppose we search for: java
+            #Without boundaries, it could potentially match part of: javascript
             
             # For programming languages with special symbols (C++, C#), word boundaries might not match at the end
             if '++' in skill or '#' in skill:
                 pattern = r'\b' + re.escape(skill.replace('\\', '')) + r'(?:\b|\s|$)'
+                #C++ and C# require special regex handling because they contain special characters.
             
             if re.search(pattern, cleaned_text, re.IGNORECASE):
                 # Clean clean name to display beautifully (e.g. capitalize python -> Python)
@@ -133,6 +140,9 @@ def extract_skills(text):
                 
                 # Deduplicate aliases (e.g. reactjs vs react, postgres vs postgresql)
                 # Map values to their canonical display forms
+                #Your vocabulary contains aliases for the same skill.
+                #Without handling this, you might get:["React", "React.js", "React"]
+                #That's messy.
                 canonical_map = {
                     'react.js': 'React', 'reactjs': 'React', 'vue.js': 'Vue', 'vuejs': 'Vue',
                     'node.js': 'Node.js', 'nodejs': 'Node.js', 'expressjs': 'Express.js',
@@ -147,8 +157,12 @@ def extract_skills(text):
                 canonical_name = canonical_map.get(display_name, name_to_use)
                 
                 if canonical_name not in categorized_skills[category]:
+                #Avoid duplicates in category
+                #If another alias also produces:React
+                #the if prevents adding it twice.
                     categorized_skills[category].append(canonical_name)
                 if canonical_name not in flat_list:
+                #The flat list also shouldn't contain duplicates.
                     flat_list.append(canonical_name)
                     
     return {

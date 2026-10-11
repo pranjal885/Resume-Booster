@@ -1,21 +1,23 @@
-import os
-import json
-from io import BytesIO
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session, send_file
-from werkzeug.utils import secure_filename
+import os#Used for operating-system-related functionality.
+import json#Used to convert between:Python dictionary ↔ JSON string
+from io import BytesIO#Creates an in-memory file.
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, send_file, jsonify
+#send_file() → send PDF/file to browser
+from werkzeug.utils import secure_filename#helps create a safe filename for the generated PDF.
 
 from models import db, Resume, JobDescription, ATSScore, ExtractedSkill, Recommendation, InterviewQuestion
 from routes.dashboard import login_required
+#Only logged-in users can analyze resumes, see results, history, or download reports.
 from config import Config
 from utils.file_validator import save_uploaded_file
 
 # AI Engines
 from ai_engine.parser import parse_resume
 from ai_engine.skill_extractor import extract_skills
-from ai_engine.matcher import calculate_semantic_similarity
+from ai_engine.matcher import calculate_semantic_similarity, get_semantic_match_explanation
 from ai_engine.keyword_optimizer import optimize_keywords
 from ai_engine.ats_score import calculate_ats_score
-from ai_engine.analyzer import analyze_resume_quality
+from ai_engine.analyzer import analyze_resume_quality, rewrite_bullet_point, generate_ai_summary
 from ai_engine.recommendation import recommend_jobs
 from ai_engine.interview_generator import generate_interview_questions
 
@@ -34,7 +36,7 @@ def index():
         # Check files
         if 'resume' not in request.files:
             flash('No resume file selected.', 'danger')
-            return redirect(request.url)
+            return redirect(request.url)#Show an error and return to the same page.
             
         file = request.files['resume']
         job_title = request.form.get('job_title', '').strip()
@@ -50,7 +52,7 @@ def index():
             flash(result, 'danger')
             return redirect(request.url)
             
-        file_path = result
+        file_path = result#If saving succeeded, result contains the path where the uploaded PDF was saved.
         
         try:
             # 1. Parse Resume Text and Structure
@@ -72,6 +74,7 @@ def index():
             )
             db.session.add(new_resume)
             db.session.flush() # Populate new_resume.id
+            #It sends the pending INSERT to the database without committing the entire transaction.
             
             # Save Target Job Description model
             new_job_desc = JobDescription(
@@ -93,15 +96,16 @@ def index():
                     )
                     db.session.add(new_skill)
                     
-            # 3. Calculate Semantic Similarity
+            # 3. Calculate Semantic Similarity & AI Match Explanation
             similarity_score, match_percentage = calculate_semantic_similarity(
                 parsed_data['parsed_text'],
                 job_desc
             )
+            semantic_explanation = get_semantic_match_explanation(parsed_data['parsed_text'], job_desc)
             
-            # 4. Keyword Optimization and Analysis
+            # 4. Keyword Optimization and AI Quality Analysis
             opt_data = optimize_keywords(parsed_data['parsed_text'], job_desc)
-            quality_data = analyze_resume_quality(parsed_data)
+            quality_data = analyze_resume_quality(parsed_data, job_desc)
             
             # Combine standard feedback from ATS score and weak phrase detections
             ats_results = calculate_ats_score(parsed_data, job_desc)
@@ -118,6 +122,8 @@ def index():
             feedback_dict['suggestions'] = quality_data['general_suggestions']
             feedback_dict['match_percentage'] = match_percentage
             feedback_dict['similarity_score'] = similarity_score
+            feedback_dict['semantic_explanation'] = semantic_explanation
+            feedback_dict['ai_feedback'] = quality_data.get('ai_feedback')
             
             # Save ATS Score
             new_ats_score = ATSScore(
@@ -134,19 +140,19 @@ def index():
             )
             db.session.add(new_ats_score)
             
-            # 5. Job Recommendations (based on profile mapping)
-            recommendations_list = recommend_jobs(parsed_data['parsed_text'])
+            # 5. Job Recommendations (AI-powered or profile fallback)
+            recommendations_list = recommend_jobs(parsed_data['parsed_text'], job_desc)
             for rec in recommendations_list:
                 new_rec = Recommendation(
                     resume_id=new_resume.id,
                     job_title=rec['job_title'],
                     match_percentage=rec['match_percentage'],
-                    skill_improvements=", ".join(rec['skill_improvements'])
+                    skill_improvements=", ".join(rec['skill_improvements']) if isinstance(rec['skill_improvements'], list) else str(rec['skill_improvements'])
                 )
                 db.session.add(new_rec)
                 
-            # 6. Interview Questions Generation
-            interview_q_list = generate_interview_questions(skills_data['flat_list'])
+            # 6. Interview Questions Generation (AI-powered or static fallback)
+            interview_q_list = generate_interview_questions(skills_data['flat_list'], parsed_data['parsed_text'], job_desc)
             for iq in interview_q_list:
                 new_iq = InterviewQuestion(
                     resume_id=new_resume.id,
@@ -438,3 +444,68 @@ def download_report(score_id):
         download_name=f"{secure_filename(resume_record.name)}_ATS_Report.pdf", 
         mimetype='application/pdf'
     )
+
+@analyze_bp.route('/analyze/improve_bullet', methods=['POST'])
+@login_required
+def improve_bullet():
+    """
+    AJAX endpoint for AI Bullet Point Improver.
+    Verifies user ownership of the resume/score.
+    """
+    data = request.get_json() or {}
+    bullet = data.get('bullet', '').strip()
+    score_id = data.get('score_id')
+    
+    if not bullet:
+        return jsonify({'success': False, 'message': 'Bullet point text is required.'}), 400
+        
+    job_desc_text = ""
+    if score_id:
+        score_record = ATSScore.query.join(Resume).filter(
+            ATSScore.id == score_id, 
+            Resume.user_id == session['user_id']
+        ).first()
+        if score_record:
+            job_record = JobDescription.query.get(score_record.job_description_id)
+            if job_record:
+                job_desc_text = job_record.description_text
+                
+    result = rewrite_bullet_point(bullet, job_desc=job_desc_text)
+    return jsonify(result)
+
+@analyze_bp.route('/analyze/generate_summary', methods=['POST'])
+@login_required
+def generate_summary():
+    """
+    AJAX endpoint for AI Professional Summary Generator.
+    Verifies user ownership of the resume/score.
+    """
+    data = request.get_json() or {}
+    score_id = data.get('score_id')
+    
+    if not score_id:
+        return jsonify({'success': False, 'message': 'Score ID is required.'}), 400
+        
+    score_record = ATSScore.query.join(Resume).filter(
+        ATSScore.id == score_id, 
+        Resume.user_id == session['user_id']
+    ).first()
+    
+    if not score_record:
+        return jsonify({'success': False, 'message': 'Resume assessment record not found.'}), 404
+        
+    resume_record = Resume.query.get(score_record.resume_id)
+    job_record = JobDescription.query.get(score_record.job_description_id)
+    
+    resume_data = {
+        'name': resume_record.name,
+        'parsed_text': resume_record.parsed_text,
+        'experience': resume_record.experience,
+        'projects': resume_record.projects,
+        'education': resume_record.education,
+        'skills_section': ", ".join([s.skill_name for s in ExtractedSkill.query.filter_by(resume_id=resume_record.id).all()])
+    }
+    
+    summary = generate_ai_summary(resume_data, job_desc=job_record.description_text if job_record else "")
+    return jsonify({'success': True, 'summary': summary})
+

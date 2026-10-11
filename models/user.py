@@ -1,7 +1,11 @@
 from datetime import datetime
+#You're importing datetime so you can record when a user account was created.
 from werkzeug.security import generate_password_hash, check_password_hash
+#These two functions are used for password security.
 from models import db
 
+
+#create python class called user that inherits from db.Model. This means that the User class is a model that SQLAlchemy will use to create a table in the database.
 class User(db.Model):
     __tablename__ = 'users'
 
@@ -13,6 +17,7 @@ class User(db.Model):
 
     # Relationships
     resumes = db.relationship('Resume', backref='user', cascade='all, delete-orphan', lazy=True)
+    #db.relationship('Resume') defines the relationship between User and Resume, allowing one user to have multiple resumes and allowing each resume to access its associated user.
     job_descriptions = db.relationship('JobDescription', backref='user', cascade='all, delete-orphan', lazy=True)
 
     def set_password(self, password):
@@ -23,3 +28,5 @@ class User(db.Model):
 
     def __repr__(self):
         return f"<User {self.username}>"
+    #__repr__() defines a readable representation of the User object.
+    # In this case, it displays the username of the user.
